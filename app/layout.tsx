@@ -5,7 +5,7 @@ import Footer from "@/components/layout/Footer";
 import "./globals.css";
 
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://fengshui-liuyao-web.vercel.app/";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://fengshui-liuyao-web.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
