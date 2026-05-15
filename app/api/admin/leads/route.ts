@@ -26,6 +26,38 @@ function createSupabaseAdminClient() {
   });
 }
 
+async function addSignedUrlsToFengShuiLeads(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  leads: any[],
+) {
+  return Promise.all(
+    leads.map(async (lead) => {
+      const uploadedFiles = Array.isArray(lead.uploaded_files)
+        ? (lead.uploaded_files as UploadedFile[])
+        : [];
+
+      const files = await Promise.all(
+        uploadedFiles.map(async (file) => {
+          const { data: signedData, error: signedError } =
+            await supabase.storage
+              .from("fengshui-uploads")
+              .createSignedUrl(file.path, 60 * 30);
+
+          return {
+            ...file,
+            signedUrl: signedError ? "" : signedData?.signedUrl ?? "",
+          };
+        }),
+      );
+
+      return {
+        ...lead,
+        uploaded_files: files,
+      };
+    }),
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -35,7 +67,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           ok: false,
-          message: "Missing ADMIN_PASSWORD in .env.local.",
+          message: "Missing ADMIN_PASSWORD in environment variables.",
         },
         { status: 500 },
       );
@@ -53,7 +85,7 @@ export async function POST(request: Request) {
 
     const supabase = createSupabaseAdminClient();
 
-    const { data, error } = await supabase
+    const { data: fengshuiData, error: fengshuiError } = await supabase
       .from("fengshui_leads")
       .select(
         `
@@ -84,46 +116,63 @@ export async function POST(request: Request) {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    if (error) {
+    if (fengshuiError) {
       return NextResponse.json(
         {
           ok: false,
-          message: error.message,
+          message: `Failed to load Feng Shui leads: ${fengshuiError.message}`,
         },
         { status: 500 },
       );
     }
 
-    const leadsWithSignedFiles = await Promise.all(
-      (data ?? []).map(async (lead) => {
-        const uploadedFiles = Array.isArray(lead.uploaded_files)
-          ? (lead.uploaded_files as UploadedFile[])
-          : [];
+    const { data: liuyaoData, error: liuyaoError } = await supabase
+      .from("liuyao_leads")
+      .select(
+        `
+        id,
+        created_at,
+        name,
+        email,
+        wechat,
+        x_account,
+        instagram,
+        preferred_contact_method,
+        seeker_gender,
+        question,
+        question_type,
+        cast_time_local,
+        timezone,
+        primary_hexagram,
+        changed_hexagram,
+        changing_lines,
+        line_results,
+        paid_reading_interest,
+        notes
+      `,
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-        const files = await Promise.all(
-          uploadedFiles.map(async (file) => {
-            const { data: signedData, error: signedError } =
-              await supabase.storage
-                .from("fengshui-uploads")
-                .createSignedUrl(file.path, 60 * 30);
+    if (liuyaoError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: `Failed to load Liu Yao leads: ${liuyaoError.message}`,
+        },
+        { status: 500 },
+      );
+    }
 
-            return {
-              ...file,
-              signedUrl: signedError ? "" : signedData?.signedUrl ?? "",
-            };
-          }),
-        );
-
-        return {
-          ...lead,
-          uploaded_files: files,
-        };
-      }),
+    const fengshuiLeads = await addSignedUrlsToFengShuiLeads(
+      supabase,
+      fengshuiData ?? [],
     );
 
     return NextResponse.json({
       ok: true,
-      leads: leadsWithSignedFiles,
+      fengshuiLeads,
+      liuyaoLeads: liuyaoData ?? [],
     });
   } catch (error) {
     const message =

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, ReactNode, useState } from "react";
 
 type AdminLeadFile = {
   name: string;
@@ -10,7 +10,7 @@ type AdminLeadFile = {
   signedUrl: string;
 };
 
-type AdminLead = {
+type FengShuiLead = {
   id: string;
   created_at: string;
 
@@ -40,9 +40,50 @@ type AdminLead = {
   uploaded_files: AdminLeadFile[];
 };
 
+type LiuYaoLineResult = {
+  position?: number;
+  positionName?: string;
+  coins?: string[];
+  sum?: number;
+  yinYang?: string;
+  changing?: boolean;
+  lineName?: string;
+  lineNameZh?: string;
+};
+
+type LiuYaoLead = {
+  id: string;
+  created_at: string;
+
+  name: string | null;
+  email: string | null;
+  wechat: string | null;
+  x_account: string | null;
+  instagram: string | null;
+  preferred_contact_method: string | null;
+
+  seeker_gender: string | null;
+  question: string | null;
+  question_type: string | null;
+  cast_time_local: string | null;
+  timezone: string | null;
+
+  primary_hexagram: string | null;
+  changed_hexagram: string | null;
+  changing_lines: string | null;
+  line_results: LiuYaoLineResult[] | null;
+
+  paid_reading_interest: string | null;
+  notes: string | null;
+};
+
+type ActiveTab = "fengshui" | "liuyao";
+
 export default function AdminLeadsPage() {
   const [password, setPassword] = useState("");
-  const [leads, setLeads] = useState<AdminLead[]>([]);
+  const [fengshuiLeads, setFengshuiLeads] = useState<FengShuiLead[]>([]);
+  const [liuyaoLeads, setLiuyaoLeads] = useState<LiuYaoLead[]>([]);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("fengshui");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -70,13 +111,15 @@ export default function AdminLeadsPage() {
         throw new Error(result.message || "Failed to load leads.");
       }
 
-      setLeads(result.leads);
+      setFengshuiLeads(result.fengshuiLeads ?? []);
+      setLiuyaoLeads(result.liuyaoLeads ?? []);
       setHasLoaded(true);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to load leads.";
       setError(message);
-      setLeads([]);
+      setFengshuiLeads([]);
+      setLiuyaoLeads([]);
       setHasLoaded(false);
     } finally {
       setIsLoading(false);
@@ -91,13 +134,13 @@ export default function AdminLeadsPage() {
         </p>
 
         <h1 className="mt-4 text-4xl font-bold md:text-6xl">
-          Feng Shui Leads
+          Consultation Leads
         </h1>
 
         <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-400">
           This page is for internal use only. It displays submitted Feng Shui
-          consultation leads, contact information, consultation intention, and
-          uploaded file links.
+          and Liu Yao consultation leads, contact information, consultation
+          intention, and uploaded file links.
         </p>
 
         <form
@@ -133,24 +176,51 @@ export default function AdminLeadsPage() {
 
         {hasLoaded ? (
           <div className="mt-8">
-            <div className="mb-5 flex items-center justify-between gap-4">
+            <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <h2 className="text-2xl font-semibold text-white">
                 Submitted Leads / 已提交线索
               </h2>
 
               <p className="text-sm text-zinc-500">
-                Total: {leads.length}
+                Feng Shui: {fengshuiLeads.length} · Liu Yao:{" "}
+                {liuyaoLeads.length}
               </p>
             </div>
 
-            {leads.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-sm text-zinc-400">
-                No leads found.
-              </div>
+            <div className="mb-6 grid gap-3 md:grid-cols-2">
+              <TabButton
+                active={activeTab === "fengshui"}
+                title="Feng Shui Leads"
+                zhTitle="风水线索"
+                count={fengshuiLeads.length}
+                onClick={() => setActiveTab("fengshui")}
+              />
+
+              <TabButton
+                active={activeTab === "liuyao"}
+                title="Liu Yao Leads"
+                zhTitle="六爻线索"
+                count={liuyaoLeads.length}
+                onClick={() => setActiveTab("liuyao")}
+              />
+            </div>
+
+            {activeTab === "fengshui" ? (
+              fengshuiLeads.length === 0 ? (
+                <EmptyState text="No Feng Shui leads found. / 暂无风水线索。" />
+              ) : (
+                <div className="space-y-5">
+                  {fengshuiLeads.map((lead) => (
+                    <FengShuiLeadCard key={lead.id} lead={lead} />
+                  ))}
+                </div>
+              )
+            ) : liuyaoLeads.length === 0 ? (
+              <EmptyState text="No Liu Yao leads found. / 暂无六爻线索。" />
             ) : (
               <div className="space-y-5">
-                {leads.map((lead) => (
-                  <LeadCard key={lead.id} lead={lead} />
+                {liuyaoLeads.map((lead) => (
+                  <LiuYaoLeadCard key={lead.id} lead={lead} />
                 ))}
               </div>
             )}
@@ -161,24 +231,45 @@ export default function AdminLeadsPage() {
   );
 }
 
-function LeadCard({ lead }: { lead: AdminLead }) {
+function TabButton({
+  active,
+  title,
+  zhTitle,
+  count,
+  onClick,
+}: {
+  active: boolean;
+  title: string;
+  zhTitle: string;
+  count: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "rounded-2xl border p-5 text-left transition",
+        active
+          ? "border-amber-300/40 bg-amber-300/10"
+          : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]",
+      ].join(" ")}
+    >
+      <p className="text-lg font-semibold text-white">{title}</p>
+      <p className="mt-1 text-sm text-amber-100">{zhTitle}</p>
+      <p className="mt-3 text-sm text-zinc-500">Total: {count}</p>
+    </button>
+  );
+}
+
+function FengShuiLeadCard({ lead }: { lead: FengShuiLead }) {
   return (
     <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
-      <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-5 md:flex-row md:items-start">
-        <div>
-          <h3 className="text-xl font-semibold text-white">
-            {lead.name || "Unnamed Lead"}
-          </h3>
-
-          <p className="mt-2 text-sm text-zinc-500">
-            Submitted at: {new Date(lead.created_at).toLocaleString()}
-          </p>
-        </div>
-
-        <div className="rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100">
-          {lead.paid_consultation_interest || "unknown"}
-        </div>
-      </div>
+      <CardHeader
+        title={lead.name || "Unnamed Feng Shui Lead"}
+        createdAt={lead.created_at}
+        badge={lead.paid_consultation_interest || "unknown"}
+      />
 
       <div className="mt-5 grid gap-5 md:grid-cols-2">
         <InfoBlock title="Contact / 联系方式">
@@ -186,10 +277,7 @@ function LeadCard({ lead }: { lead: AdminLead }) {
           <InfoRow label="WeChat" value={lead.wechat} />
           <InfoRow label="X / Twitter" value={lead.x_account} />
           <InfoRow label="Instagram" value={lead.instagram} />
-          <InfoRow
-            label="Preferred"
-            value={lead.preferred_contact_method}
-          />
+          <InfoRow label="Preferred" value={lead.preferred_contact_method} />
         </InfoBlock>
 
         <InfoBlock title="Main Request / 主要需求">
@@ -251,15 +339,108 @@ function LeadCard({ lead }: { lead: AdminLead }) {
         </InfoBlock>
       </div>
 
-      {lead.notes ? (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-5">
-          <h4 className="font-semibold text-white">Notes / 补充说明</h4>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-400">
-            {lead.notes}
-          </p>
-        </div>
-      ) : null}
+      {lead.notes ? <NotesBlock notes={lead.notes} /> : null}
     </article>
+  );
+}
+
+function LiuYaoLeadCard({ lead }: { lead: LiuYaoLead }) {
+  const lineResults = Array.isArray(lead.line_results)
+    ? lead.line_results
+    : [];
+
+  return (
+    <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+      <CardHeader
+        title={lead.name || "Unnamed Liu Yao Lead"}
+        createdAt={lead.created_at}
+        badge={lead.paid_reading_interest || "unknown"}
+      />
+
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <InfoBlock title="Contact / 联系方式">
+          <InfoRow label="Email" value={lead.email} />
+          <InfoRow label="WeChat" value={lead.wechat} />
+          <InfoRow label="X / Twitter" value={lead.x_account} />
+          <InfoRow label="Instagram" value={lead.instagram} />
+          <InfoRow label="Preferred" value={lead.preferred_contact_method} />
+        </InfoBlock>
+
+        <InfoBlock title="Question / 占问信息">
+          <InfoRow label="Question" value={lead.question} />
+          <InfoRow label="Type" value={lead.question_type} />
+          <InfoRow label="Gender" value={lead.seeker_gender} />
+          <InfoRow label="Cast Time" value={lead.cast_time_local} />
+          <InfoRow label="Timezone" value={lead.timezone} />
+        </InfoBlock>
+
+        <InfoBlock title="Hexagram / 卦象结果">
+          <InfoRow label="Primary" value={lead.primary_hexagram} />
+          <InfoRow label="Changed" value={lead.changed_hexagram} />
+          <InfoRow label="Changing" value={lead.changing_lines} />
+          <InfoRow label="Paid Interest" value={lead.paid_reading_interest} />
+        </InfoBlock>
+
+        <InfoBlock title="Line Results / 六爻明细">
+          {lineResults.length ? (
+            <div className="space-y-2">
+              {lineResults.map((line, index) => (
+                <div
+                  key={`${line.position ?? index}-${line.sum ?? "line"}`}
+                  className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm"
+                >
+                  <p className="font-medium text-amber-100">
+                    {line.positionName || `Line ${index + 1}`} ·{" "}
+                    {line.lineNameZh || line.lineName || "-"}
+                    {line.changing ? " · 动爻" : ""}
+                  </p>
+
+                  <p className="mt-2 text-xs leading-6 text-zinc-500">
+                    Sum: {line.sum ?? "-"} · Yin/Yang: {line.yinYang ?? "-"}
+                  </p>
+
+                  {line.coins?.length ? (
+                    <p className="mt-1 text-xs leading-6 text-zinc-500">
+                      Coins: {line.coins.join(", ")}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-500">No line details.</p>
+          )}
+        </InfoBlock>
+      </div>
+
+      {lead.notes ? <NotesBlock notes={lead.notes} /> : null}
+    </article>
+  );
+}
+
+function CardHeader({
+  title,
+  createdAt,
+  badge,
+}: {
+  title: string;
+  createdAt: string;
+  badge: string;
+}) {
+  return (
+    <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-5 md:flex-row md:items-start">
+      <div>
+        <h3 className="text-xl font-semibold text-white">{title}</h3>
+
+        <p className="mt-2 text-sm text-zinc-500">
+          Submitted at: {new Date(createdAt).toLocaleString()}
+        </p>
+      </div>
+
+      <div className="rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100">
+        {badge}
+      </div>
+    </div>
   );
 }
 
@@ -268,7 +449,7 @@ function InfoBlock({
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
@@ -289,6 +470,25 @@ function InfoRow({
     <div className="mb-2 flex gap-3 text-sm">
       <span className="w-32 shrink-0 text-zinc-500">{label}</span>
       <span className="break-all text-zinc-300">{value || "-"}</span>
+    </div>
+  );
+}
+
+function NotesBlock({ notes }: { notes: string }) {
+  return (
+    <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-5">
+      <h4 className="font-semibold text-white">Notes / 补充说明</h4>
+      <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-400">
+        {notes}
+      </p>
+    </div>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-sm text-zinc-400">
+      {text}
     </div>
   );
 }
