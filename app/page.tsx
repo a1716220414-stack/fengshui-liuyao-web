@@ -1,160 +1,232 @@
 import Link from "next/link";
 
-const serviceCards = [
+const gateways = [
   {
-    title: "Feng Shui Analysis",
-    zhTitle: "风水分析",
+    eyebrow: "Feng Shui / 风水",
+    title: "Observe the home, read the flow of Qi",
+    zhTitle: "观宅察气，审形定局",
     description:
-      "Upload or describe your home, apartment, room, or floor plan to receive a preliminary Feng Shui reading.",
+      "Submit your home, apartment, room, floor plan, or interior photos to receive a preliminary Feng Shui reading.",
     zhDescription:
-      "填写住宅、公寓、房间或户型图信息，获得一份基础风水分析，用于判断格局问题和后续咨询方向。",
+      "适合住宅、公寓、单个房间、户型图与实景照片分析，先判断格局问题，再决定是否进一步深度咨询。",
     href: "/fengshui",
-    button: "Start Free Feng Shui Check / 开始免费风水检测",
-    tags: ["Home", "Room", "Floor Plan", "Photos"],
+    button: "Enter Feng Shui Reading / 进入风水分析",
+    symbols: ["宅", "门", "水", "局"],
   },
   {
-    title: "Liu Yao Divination",
-    zhTitle: "六爻占问",
+    eyebrow: "Liu Yao / 六爻",
+    title: "Ask one question, cast six lines",
+    zhTitle: "一事一占，六爻成象",
     description:
-      "Ask one focused question, cast six lines manually or automatically, and submit a request for deeper interpretation.",
+      "Ask a focused question, cast manually or automatically, or enter an existing hexagram for deeper interpretation.",
     zhDescription:
-      "输入一个具体问题，可选择手动摇卦、自动模拟或手动录入卦象，并提交深度解卦需求。",
+      "适合工作、感情、财务、选择、时机等具体问题。可手动摇卦、自动模拟，或录入已有卦象。",
     href: "/liuyao",
     button: "Start Liu Yao Casting / 开始六爻起卦",
-    tags: ["Question", "Hexagram", "Changing Lines", "Reading"],
+    symbols: ["卦", "爻", "问", "变"],
   },
 ];
 
 const processSteps = [
   {
-    step: "01",
-    title: "Start with a free reading",
-    zhTitle: "先从免费体验开始",
-    text: "Use the Feng Shui form or Liu Yao casting page to generate a preliminary result.",
-    zhText: "通过风水表单或六爻起卦页面，先获得一个基础结果和问题方向。",
+    number: "一",
+    title: "Begin with a free preliminary reading",
+    zhTitle: "先以免费初判，明其大势",
+    text: "Use the Feng Shui or Liu Yao tool to receive an initial direction.",
+    zhText: "先通过风水表单或六爻起卦获得基础判断，了解问题所在与后续方向。",
   },
   {
-    step: "02",
-    title: "Submit context and contact",
-    zhTitle: "提交背景与联系方式",
-    text: "If you want deeper analysis, leave your preferred contact method and background notes.",
-    zhText: "如果需要更深入分析，可以留下联系方式和事情背景，方便后续跟进。",
+    number: "二",
+    title: "Add context and personal details",
+    zhTitle: "再补背景资料，辨其细节",
+    text: "For deeper consultation, add your background notes, images, layout details, or contact method.",
+    zhText: "若需深入判断，可补充户型图、房间照片、事情背景、联系方式等信息。",
   },
   {
-    step: "03",
-    title: "Request deeper consultation",
-    zhTitle: "申请深度咨询",
-    text: "A paid review can provide more detailed interpretation, layout advice, or practical suggestions.",
-    zhText: "付费咨询可以进一步提供更完整的解读、布局建议或实际调整方向。",
+    number: "三",
+    title: "Request deeper interpretation",
+    zhTitle: "终作深度推演，给出建议",
+    text: "Paid consultation can provide more detailed reading, practical advice, and follow-up communication.",
+    zhText: "付费咨询可进一步结合具体背景，给出更完整的解读与可执行建议。",
   },
 ];
 
-const trustPoints = [
+const trustItems = [
   {
-    title: "Private submissions",
-    zhTitle: "提交内容不公开展示",
-    text: "Your floor plans, room photos, questions, and contact details are used for analysis and follow-up only.",
-    zhText: "你提交的户型图、房间照片、占问问题和联系方式仅用于分析与后续沟通。",
+    title: "Private by default",
+    zhTitle: "资料默认私密",
+    text: "Submitted floor plans, room photos, questions, and contact information are used for analysis and follow-up only.",
+    zhText: "用户提交的户型图、房间照片、占问问题和联系方式，仅用于分析与后续沟通，不在网站公开展示。",
   },
   {
-    title: "Bilingual experience",
-    zhTitle: "中英文双语体验",
-    text: "The site is designed for overseas users while retaining Chinese metaphysics concepts.",
-    zhText: "网站面向海外用户，但保留风水、六爻和东方玄学的核心表达。",
+    title: "Bilingual service",
+    zhTitle: "中英文双语",
+    text: "Designed for overseas users while preserving the structure and language of Chinese metaphysics.",
+    zhText: "面向海外用户设计，同时保留风水、六爻和东方玄学的核心表达。",
   },
   {
-    title: "Clear service boundary",
-    zhTitle: "明确服务边界",
-    text: "Metaphysics readings are for cultural, lifestyle, reflective, and spatial guidance, not guaranteed predictions.",
-    zhText: "玄学分析用于文化体验、生活方式参考和空间建议，不构成确定性预测。",
+    title: "Clear boundary",
+    zhTitle: "边界清晰",
+    text: "Readings are for cultural, reflective, lifestyle, and spatial guidance, not guaranteed predictions.",
+    zhText: "分析结果用于文化体验、个人反思、生活方式和空间建议，不构成确定性承诺。",
+  },
+];
+
+const serviceTiers = [
+  {
+    title: "Free Preliminary Reading",
+    zhTitle: "免费初步分析",
+    content:
+      "Suitable for first-time users who want to understand the general direction before deeper consultation.",
+    zhContent:
+      "适合首次体验用户，用于先了解住宅格局或所问之事的大致方向。",
+  },
+  {
+    title: "Floor Plan & Room Review",
+    zhTitle: "户型图与房间深度分析",
+    content:
+      "Suitable for users who can provide floor plans, room photos, directions, and specific concerns.",
+    zhContent:
+      "适合可以提供户型图、房间照片、朝向信息和具体问题的用户。",
+  },
+  {
+    title: "Liu Yao Deeper Reading",
+    zhTitle: "六爻深度解卦",
+    content:
+      "Suitable for users who need interpretation of useful god, changing lines, timing, and practical advice.",
+    zhContent:
+      "适合需要进一步判断用神、世应、动爻、变卦、时机和行动建议的用户。",
   },
 ];
 
 const faqItems = [
   {
-    question: "Is the free result the same as a paid consultation?",
-    zhQuestion: "免费结果和付费咨询一样吗？",
-    answer:
-      "No. The free result gives a preliminary direction. A paid consultation can include more context, clearer interpretation, and more specific suggestions.",
-    zhAnswer:
-      "不一样。免费结果主要提供初步方向；付费咨询可以结合更多背景信息，给出更细致的判断和建议。",
+    q: "Can I use this if I know nothing about Feng Shui or Liu Yao?",
+    zhQ: "完全不懂风水或六爻也可以使用吗？",
+    a: "Yes. The website is designed for first-time users. You only need to describe your situation or follow the form.",
+    zhA: "可以。网站面向首次体验用户设计，只需要按照表单描述住宅、房间或所问之事即可。",
   },
   {
-    question: "Can I analyze just one room?",
-    zhQuestion: "可以只看一个房间吗？",
-    answer:
-      "Yes. You can choose room-level Feng Shui analysis and upload room photos or describe the room layout.",
-    zhAnswer:
-      "可以。风水页面支持单个房间分析，你可以上传房间实景图或描述房间布局。",
+    q: "Can I submit photos or a floor plan?",
+    zhQ: "可以上传户型图或房间照片吗？",
+    a: "Yes. The Feng Shui page supports uploaded floor plans and room photos for deeper review.",
+    zhA: "可以。风水页面支持上传户型图和房间实景照片，便于后续进一步分析。",
   },
   {
-    question: "Can I submit an already-cast Liu Yao hexagram?",
-    zhQuestion: "已经在线下起好的六爻卦可以提交吗？",
-    answer:
-      "Yes. The Liu Yao page supports manual hexagram input, so you can directly select six lines from bottom to top.",
-    zhAnswer:
-      "可以。六爻页面支持手动选卦，可以从初爻到上爻直接录入已有卦象。",
+    q: "Can I enter a hexagram I already cast offline?",
+    zhQ: "已经在线下起好的卦可以录入吗？",
+    a: "Yes. The Liu Yao page supports manual hexagram input from the first line to the top line.",
+    zhA: "可以。六爻页面支持手动选卦，可以从初爻到上爻录入已有卦象。",
   },
 ];
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
+    <main className="min-h-screen bg-[#080706] text-stone-100">
       <section className="relative overflow-hidden px-6 py-20 md:py-28">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.16),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(120,53,15,0.20),transparent_36%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(217,163,64,0.18),transparent_32%),radial-gradient(circle_at_80%_20%,rgba(20,83,45,0.20),transparent_34%),linear-gradient(180deg,#080706_0%,#11100d_48%,#080706_100%)]" />
+        <div className="absolute left-0 top-24 h-px w-full bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" />
+        <div className="absolute bottom-20 left-0 h-px w-full bg-gradient-to-r from-transparent via-amber-200/10 to-transparent" />
 
-        <div className="relative mx-auto max-w-6xl">
-          <div className="max-w-4xl">
-            <p className="text-sm uppercase tracking-[0.35em] text-amber-200">
-              SY Metaphysics
-            </p>
+        <div className="pointer-events-none absolute -left-24 top-20 h-80 w-80 rounded-full border border-amber-200/10" />
+        <div className="pointer-events-none absolute -right-32 bottom-12 h-96 w-96 rounded-full border border-emerald-200/10" />
 
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-white md:text-7xl">
-              Feng Shui & Liu Yao consultation for modern overseas users
+        <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div>
+            <div className="inline-flex items-center gap-3 rounded-full border border-amber-200/20 bg-amber-200/10 px-4 py-2">
+              <span className="h-2 w-2 rounded-full bg-amber-200" />
+              <span className="text-xs uppercase tracking-[0.32em] text-amber-100">
+                SY Metaphysics
+              </span>
+            </div>
+
+            <h1 className="mt-8 text-4xl font-semibold leading-tight tracking-tight text-stone-50 md:text-7xl">
+              Eastern wisdom for space, timing, and decisions
             </h1>
 
-            <h2 className="mt-6 text-2xl font-medium leading-relaxed text-amber-100 md:text-4xl">
-              面向海外用户的风水分析与六爻占问服务
+            <h2 className="mt-6 text-3xl font-medium leading-relaxed text-amber-100 md:text-5xl">
+              观宅察气，六爻问事
             </h2>
 
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">
-              Start with a free preliminary reading, then request a deeper paid
-              consultation when you need specific layout advice, hexagram
-              interpretation, or practical next-step guidance.
+            <p className="mt-6 max-w-2xl text-base leading-8 text-stone-300 md:text-lg">
+              A bilingual Feng Shui and Liu Yao consultation website for
+              overseas users. Start with a free preliminary reading, then
+              request deeper paid consultation when needed.
             </p>
 
-            <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-400">
-              你可以先通过免费风水检测或六爻起卦获得初步结果。如果需要更深入的判断，可以进一步提交资料并申请付费咨询。
+            <p className="mt-4 max-w-2xl text-base leading-8 text-stone-500">
+              面向海外用户的东方玄学服务网站。先以免费初判了解方向，再根据户型、照片、卦象和背景信息申请深度咨询。
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/fengshui"
-                className="rounded-full bg-amber-300 px-7 py-4 text-center text-sm font-semibold text-black transition hover:bg-amber-200"
+                className="rounded-full bg-amber-300 px-7 py-4 text-center text-sm font-semibold text-black shadow-lg shadow-amber-950/30 transition hover:bg-amber-200"
               >
-                Start Free Feng Shui Check / 免费风水检测
+                Free Feng Shui Reading / 免费风水检测
               </Link>
 
               <Link
                 href="/liuyao"
-                className="rounded-full border border-amber-300/40 px-7 py-4 text-center text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10"
+                className="rounded-full border border-amber-200/40 px-7 py-4 text-center text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10"
               >
-                Start Liu Yao Casting / 六爻起卦
+                Liu Yao Casting / 六爻起卦
               </Link>
             </div>
+          </div>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              <HeroStat number="2" label="Core Services" zhLabel="核心服务" />
-              <HeroStat
-                number="Free"
-                label="Preliminary Reading"
-                zhLabel="免费初步体验"
-              />
-              <HeroStat
-                number="Paid"
-                label="Deeper Consultation"
-                zhLabel="深度付费咨询"
-              />
+          <div className="relative">
+            <div className="absolute inset-0 rounded-[2.5rem] bg-amber-300/10 blur-3xl" />
+
+            <div className="relative rounded-[2rem] border border-amber-200/20 bg-[#12100c]/90 p-6 shadow-2xl shadow-black/40">
+              <div className="rounded-[1.5rem] border border-amber-200/10 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.16),transparent_45%),rgba(255,255,255,0.03)] p-7">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.35em] text-amber-200">
+                      易 · 宅 · 卦
+                    </p>
+                    <p className="mt-3 text-2xl font-semibold text-white">
+                      SY Metaphysics
+                    </p>
+                  </div>
+
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-amber-200/40 bg-amber-200/10 text-xl font-semibold text-amber-100">
+                    玄
+                  </div>
+                </div>
+
+                <div className="mt-10 grid grid-cols-3 gap-3">
+                  {["乾", "坤", "震", "巽", "坎", "离", "艮", "兑", "中"].map(
+                    (item) => (
+                      <div
+                        key={item}
+                        className="flex h-16 items-center justify-center rounded-2xl border border-white/10 bg-black/20 text-xl text-amber-100"
+                      >
+                        {item}
+                      </div>
+                    ),
+                  )}
+                </div>
+
+                <div className="mt-8 space-y-3">
+                  <ClassicLine type="solid" />
+                  <ClassicLine type="broken" />
+                  <ClassicLine type="solid" />
+                  <ClassicLine type="broken" />
+                  <ClassicLine type="broken" />
+                  <ClassicLine type="solid" />
+                </div>
+
+                <div className="mt-8 rounded-2xl border border-amber-200/10 bg-black/20 p-5">
+                  <p className="text-sm leading-7 text-stone-300">
+                    “Start with a simple reading. Continue only when the
+                    question deserves a deeper answer.”
+                  </p>
+                  <p className="mt-3 text-sm leading-7 text-stone-500">
+                    “先知其大势，再辨其细微。以简入深，以问入道。”
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -162,58 +234,54 @@ export default function HomePage() {
 
       <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="max-w-3xl">
-            <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-              Choose a Service / 选择服务
-            </p>
-
-            <h2 className="mt-4 text-3xl font-bold text-white md:text-5xl">
-              Start from the question you care about most
-            </h2>
-
-            <p className="mt-5 text-base leading-8 text-zinc-400">
-              不同问题适合不同入口：住宅、房间和布局问题适合风水分析；工作、关系、选择、财务等具体问题适合六爻占问。
-            </p>
-          </div>
+          <SectionTitle
+            eyebrow="Two Gateways / 两个入口"
+            title="Choose by what you want to ask"
+            zhTitle="因事择法，因问入门"
+            text="Home and room layout questions are better suited for Feng Shui. Specific life, relationship, career, wealth, or timing questions are better suited for Liu Yao."
+            zhText="住宅、房间、户型和空间格局问题，适合风水分析；工作、感情、财务、选择和时机问题，适合六爻占问。"
+          />
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
-            {serviceCards.map((service) => (
+            {gateways.map((item) => (
               <article
-                key={service.title}
-                className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-amber-300/40 hover:bg-white/[0.07]"
+                key={item.title}
+                className="group rounded-[2rem] border border-white/10 bg-[#11100d] p-7 transition hover:-translate-y-1 hover:border-amber-200/40 hover:bg-[#17140f]"
               >
                 <div className="flex flex-wrap gap-2">
-                  {service.tags.map((tag) => (
+                  {item.symbols.map((symbol) => (
                     <span
-                      key={tag}
-                      className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs text-amber-100"
+                      key={symbol}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200/20 bg-amber-200/10 text-sm text-amber-100"
                     >
-                      {tag}
+                      {symbol}
                     </span>
                   ))}
                 </div>
 
-                <h3 className="mt-7 text-3xl font-semibold text-white">
-                  {service.title}
+                <p className="mt-8 text-sm uppercase tracking-[0.28em] text-amber-200">
+                  {item.eyebrow}
+                </p>
+
+                <h3 className="mt-4 text-3xl font-semibold text-white">
+                  {item.title}
                 </h3>
 
-                <p className="mt-2 text-xl text-amber-100">
-                  {service.zhTitle}
+                <p className="mt-2 text-2xl text-amber-100">{item.zhTitle}</p>
+
+                <p className="mt-5 text-sm leading-7 text-stone-300">
+                  {item.description}
                 </p>
 
-                <p className="mt-5 text-sm leading-7 text-zinc-300">
-                  {service.description}
-                </p>
-
-                <p className="mt-3 text-sm leading-7 text-zinc-500">
-                  {service.zhDescription}
+                <p className="mt-3 text-sm leading-7 text-stone-500">
+                  {item.zhDescription}
                 </p>
 
                 <Link
-                  href={service.href}
+                  href={item.href}
                   className="mt-7 inline-flex rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-black transition hover:bg-amber-200"
                 >
-                  {service.button}
+                  {item.button}
                 </Link>
               </article>
             ))}
@@ -221,191 +289,216 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-white/10 bg-black/20 px-6 py-16">
+      <section className="border-y border-amber-200/10 bg-[#0d0b08] px-6 py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-                How It Works / 服务流程
-              </p>
+          <SectionTitle
+            eyebrow="Path / 流程"
+            title="From first impression to deeper reading"
+            zhTitle="由浅入深，由象入理"
+            text="The website is designed as a light consultation funnel: free experience first, deeper interpretation later."
+            zhText="网站当前是轻量化获客闭环：先让用户免费体验，再将高意向用户引导至深度咨询。"
+          />
 
-              <h2 className="mt-4 text-3xl font-bold text-white md:text-5xl">
-                From free insight to deeper consultation
-              </h2>
-
-              <p className="mt-5 text-sm leading-7 text-zinc-400">
-                The site is designed as a lightweight consultation funnel:
-                users can try a free tool first, then submit a deeper request
-                when they have stronger intent.
-              </p>
-
-              <p className="mt-3 text-sm leading-7 text-zinc-500">
-                网站当前定位是轻量获客闭环：先让用户免费体验，再将高意向用户引导到深度咨询。
-              </p>
-            </div>
-
-            <div className="grid gap-4">
-              {processSteps.map((item) => (
-                <div
-                  key={item.step}
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-6"
-                >
-                  <p className="text-sm font-semibold text-amber-200">
-                    {item.step}
-                  </p>
-
-                  <h3 className="mt-3 text-xl font-semibold text-white">
-                    {item.title}
-                  </h3>
-
-                  <p className="mt-1 text-lg text-amber-100">
-                    {item.zhTitle}
-                  </p>
-
-                  <p className="mt-4 text-sm leading-7 text-zinc-300">
-                    {item.text}
-                  </p>
-
-                  <p className="mt-2 text-sm leading-7 text-zinc-500">
-                    {item.zhText}
-                  </p>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {processSteps.map((item) => (
+              <article
+                key={item.number}
+                className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-200/30 bg-amber-200/10 text-xl text-amber-100">
+                  {item.number}
                 </div>
-              ))}
-            </div>
+
+                <h3 className="mt-6 text-xl font-semibold text-white">
+                  {item.title}
+                </h3>
+
+                <p className="mt-2 text-lg text-amber-100">{item.zhTitle}</p>
+
+                <p className="mt-5 text-sm leading-7 text-stone-300">
+                  {item.text}
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-stone-500">
+                  {item.zhText}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="max-w-3xl">
-            <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-              Trust & Boundary / 信任与边界
-            </p>
-
-            <h2 className="mt-4 text-3xl font-bold text-white md:text-5xl">
-              Clear, private, and practical
-            </h2>
-
-            <p className="mt-5 text-base leading-8 text-zinc-400">
-              用户愿意上传户型图、房间照片或留下联系方式之前，需要先看到隐私说明、服务边界和实际价值。
-            </p>
-          </div>
+          <SectionTitle
+            eyebrow="Services / 服务"
+            title="Free entry, deeper paid consultation"
+            zhTitle="免费入门，深度付费"
+            text="The free tools help users understand the direction. Paid consultation is for users who need a more complete reading and practical suggestions."
+            zhText="免费工具用于判断方向；深度咨询面向需要完整解读、具体建议和后续沟通的用户。"
+          />
 
           <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {trustPoints.map((point) => (
+            {serviceTiers.map((item) => (
               <article
-                key={point.title}
-                className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6"
+                key={item.title}
+                className="rounded-[1.75rem] border border-white/10 bg-[#11100d] p-6"
               >
                 <h3 className="text-xl font-semibold text-white">
-                  {point.title}
+                  {item.title}
                 </h3>
 
-                <p className="mt-1 text-lg text-amber-100">
-                  {point.zhTitle}
+                <p className="mt-2 text-lg text-amber-100">{item.zhTitle}</p>
+
+                <p className="mt-5 text-sm leading-7 text-stone-300">
+                  {item.content}
                 </p>
 
-                <p className="mt-5 text-sm leading-7 text-zinc-300">
-                  {point.text}
-                </p>
-
-                <p className="mt-3 text-sm leading-7 text-zinc-500">
-                  {point.zhText}
+                <p className="mt-3 text-sm leading-7 text-stone-500">
+                  {item.zhContent}
                 </p>
               </article>
             ))}
           </div>
 
-          <div className="mt-8 rounded-[1.5rem] border border-amber-300/20 bg-amber-300/10 p-6">
+          <div className="mt-8 flex flex-col gap-4 rounded-[1.75rem] border border-amber-200/20 bg-amber-200/10 p-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-xl font-semibold text-amber-100">
+                Need a more specific reading?
+              </h3>
+              <p className="mt-2 text-sm leading-7 text-stone-400">
+                Submit your details through Feng Shui or Liu Yao, then we can
+                follow up based on your preferred contact method.
+              </p>
+              <p className="mt-1 text-sm leading-7 text-stone-500">
+                如需更具体分析，请通过风水或六爻页面提交资料，我们会根据你的联系方式跟进。
+              </p>
+            </div>
+
+            <Link
+              href="/services"
+              className="shrink-0 rounded-full border border-amber-200/40 px-5 py-3 text-center text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10"
+            >
+              View Services / 查看服务
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-amber-200/10 bg-[#0d0b08] px-6 py-16">
+        <div className="mx-auto max-w-6xl">
+          <SectionTitle
+            eyebrow="Trust / 信任"
+            title="Private, clear, and practical"
+            zhTitle="守隐私，明边界，重实用"
+            text="For overseas users, trust matters before they upload a floor plan, room photo, or personal question."
+            zhText="对于海外用户而言，在上传户型图、房间照片或个人问题之前，必须先看见清晰的隐私说明与服务边界。"
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {trustItems.map((item) => (
+              <article
+                key={item.title}
+                className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6"
+              >
+                <h3 className="text-xl font-semibold text-white">
+                  {item.title}
+                </h3>
+
+                <p className="mt-2 text-lg text-amber-100">{item.zhTitle}</p>
+
+                <p className="mt-5 text-sm leading-7 text-stone-300">
+                  {item.text}
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-stone-500">
+                  {item.zhText}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-8 rounded-[1.75rem] border border-amber-200/20 bg-black/20 p-6">
             <h3 className="text-xl font-semibold text-amber-100">
-              Service Disclaimer / 服务说明
+              Service Disclaimer / 服务边界
             </h3>
 
-            <p className="mt-4 text-sm leading-7 text-zinc-300">
+            <p className="mt-4 text-sm leading-7 text-stone-300">
               Feng Shui, Liu Yao, and metaphysics services are provided for
               cultural, lifestyle, reflective, and spatial guidance. They should
               not replace legal, medical, financial, psychological, or other
               professional advice.
             </p>
 
-            <p className="mt-3 text-sm leading-7 text-zinc-500">
-              风水、六爻和玄学服务主要用于文化体验、生活方式参考、个人反思和空间建议，不应替代法律、医疗、财务、心理或其他专业意见。
+            <p className="mt-3 text-sm leading-7 text-stone-500">
+              风水、六爻与玄学服务主要用于文化体验、生活方式参考、个人反思和空间建议，不替代法律、医疗、财务、心理或其他专业意见。
             </p>
 
             <Link
               href="/privacy"
-              className="mt-5 inline-flex rounded-full border border-amber-300/30 px-5 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10"
+              className="mt-5 inline-flex rounded-full border border-amber-200/40 px-5 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10"
             >
-              Read Privacy & Disclaimer / 查看隐私与免责声明
+              Privacy & Disclaimer / 隐私与免责声明
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-white/10 bg-black/20 px-6 py-16">
+      <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr]">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-                FAQ / 常见问题
-              </p>
+          <SectionTitle
+            eyebrow="Questions / 常见问题"
+            title="Before you begin"
+            zhTitle="起问之前，先明其法"
+            text="These answers help first-time users understand how to start and what information to prepare."
+            zhText="以下内容帮助首次使用者了解如何开始，以及需要准备哪些信息。"
+          />
 
-              <h2 className="mt-4 text-3xl font-bold text-white md:text-5xl">
-                Before you start
-              </h2>
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {faqItems.map((item) => (
+              <article
+                key={item.q}
+                className="rounded-[1.75rem] border border-white/10 bg-[#11100d] p-6"
+              >
+                <h3 className="text-lg font-semibold text-white">{item.q}</h3>
 
-              <p className="mt-5 text-sm leading-7 text-zinc-400">
-                These answers help first-time users understand what they can do
-                on the site before submitting personal information.
-              </p>
-            </div>
+                <p className="mt-2 text-base text-amber-100">{item.zhQ}</p>
 
-            <div className="space-y-4">
-              {faqItems.map((item) => (
-                <article
-                  key={item.question}
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-6"
-                >
-                  <h3 className="text-lg font-semibold text-white">
-                    {item.question}
-                  </h3>
+                <p className="mt-5 text-sm leading-7 text-stone-300">
+                  {item.a}
+                </p>
 
-                  <p className="mt-1 text-base text-amber-100">
-                    {item.zhQuestion}
-                  </p>
-
-                  <p className="mt-4 text-sm leading-7 text-zinc-300">
-                    {item.answer}
-                  </p>
-
-                  <p className="mt-2 text-sm leading-7 text-zinc-500">
-                    {item.zhAnswer}
-                  </p>
-                </article>
-              ))}
-            </div>
+                <p className="mt-3 text-sm leading-7 text-stone-500">
+                  {item.zhA}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-5xl rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.18),rgba(255,255,255,0.04)_45%,rgba(0,0,0,0.2)_100%)] p-8 text-center md:p-12">
+      <section className="px-6 pb-20 pt-6">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-amber-200/20 bg-[radial-gradient(circle_at_top,rgba(217,163,64,0.18),rgba(255,255,255,0.03)_45%,rgba(0,0,0,0.28)_100%)] p-8 text-center md:p-12">
           <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-            Start Now / 立即开始
+            Start / 开始
           </p>
 
-          <h2 className="mt-4 text-3xl font-bold text-white md:text-5xl">
-            Begin with a free preliminary reading
+          <h2 className="mt-4 text-3xl font-semibold text-white md:text-5xl">
+            Begin with one clear question
           </h2>
 
-          <p className="mt-5 text-base leading-8 text-zinc-300">
-            Choose Feng Shui for home or room layout questions. Choose Liu Yao
-            for a focused life, relationship, career, or decision question.
+          <p className="mt-4 text-3xl text-amber-100 md:text-4xl">
+            一念既起，卦象自成
           </p>
 
-          <p className="mt-3 text-sm leading-7 text-zinc-500">
-            如果你关心住宅或房间格局，选择风水分析；如果你有具体事情想问，选择六爻占问。
+          <p className="mt-6 text-sm leading-7 text-stone-400">
+            Choose Feng Shui for home or room layout. Choose Liu Yao for a
+            focused question about timing, relationship, career, wealth, or
+            decisions.
+          </p>
+
+          <p className="mt-3 text-sm leading-7 text-stone-500">
+            住宅与房间格局，入风水；具体事情与时机判断，入六爻。
           </p>
 
           <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
@@ -413,14 +506,14 @@ export default function HomePage() {
               href="/fengshui"
               className="rounded-full bg-amber-300 px-7 py-4 text-sm font-semibold text-black transition hover:bg-amber-200"
             >
-              Feng Shui Check / 风水检测
+              Feng Shui Reading / 风水分析
             </Link>
 
             <Link
               href="/liuyao"
-              className="rounded-full border border-amber-300/40 px-7 py-4 text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10"
+              className="rounded-full border border-amber-200/40 px-7 py-4 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10"
             >
-              Liu Yao Casting / 六爻起卦
+              Liu Yao Casting / 六爻占问
             </Link>
           </div>
         </div>
@@ -429,20 +522,48 @@ export default function HomePage() {
   );
 }
 
-function HeroStat({
-  number,
-  label,
-  zhLabel,
+function ClassicLine({ type }: { type: "solid" | "broken" }) {
+  if (type === "solid") {
+    return <div className="h-3 rounded-full bg-amber-200/80" />;
+  }
+
+  return (
+    <div className="grid grid-cols-[1fr_0.6fr_1fr] gap-4">
+      <div className="h-3 rounded-full bg-amber-200/80" />
+      <div />
+      <div className="h-3 rounded-full bg-amber-200/80" />
+    </div>
+  );
+}
+
+function SectionTitle({
+  eyebrow,
+  title,
+  zhTitle,
+  text,
+  zhText,
 }: {
-  number: string;
-  label: string;
-  zhLabel: string;
+  eyebrow: string;
+  title: string;
+  zhTitle: string;
+  text: string;
+  zhText: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 backdrop-blur">
-      <p className="text-2xl font-bold text-amber-200">{number}</p>
-      <p className="mt-2 text-sm text-zinc-300">{label}</p>
-      <p className="mt-1 text-xs text-zinc-500">{zhLabel}</p>
+    <div className="max-w-3xl">
+      <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
+        {eyebrow}
+      </p>
+
+      <h2 className="mt-4 text-3xl font-semibold text-white md:text-5xl">
+        {title}
+      </h2>
+
+      <p className="mt-3 text-2xl text-amber-100 md:text-3xl">{zhTitle}</p>
+
+      <p className="mt-5 text-sm leading-7 text-stone-300">{text}</p>
+
+      <p className="mt-3 text-sm leading-7 text-stone-500">{zhText}</p>
     </div>
   );
 }
