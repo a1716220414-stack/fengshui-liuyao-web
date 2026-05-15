@@ -1,12 +1,63 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import "./globals.css";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://fengshui-liuyao-web.vercel.app/";
 
 export const metadata: Metadata = {
-  title: "SY Metaphysics | Feng Shui & Liu Yao Reading",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "SY Metaphysics | Feng Shui & Liu Yao Consultation",
+    template: "%s | SY Metaphysics",
+  },
   description:
-    "A modern metaphysics service platform for Feng Shui, Liu Yao divination, and custom spiritual reading services.",
+    "SY Metaphysics provides bilingual Feng Shui analysis, Liu Yao divination, floor plan review, and consultation services for overseas users.",
+  keywords: [
+    "Feng Shui",
+    "Liu Yao",
+    "Chinese metaphysics",
+    "I Ching",
+    "home feng shui",
+    "room feng shui",
+    "feng shui consultation",
+    "six lines divination",
+    "风水",
+    "六爻",
+    "易经",
+    "东方玄学",
+  ],
+  authors: [
+    {
+      name: "SY Metaphysics",
+    },
+  ],
+  creator: "SY Metaphysics",
+  publisher: "SY Metaphysics",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "SY Metaphysics | Feng Shui & Liu Yao Consultation",
+    description:
+      "Bilingual Feng Shui analysis, Liu Yao divination, and metaphysics consultation for overseas users.",
+    url: siteUrl,
+    siteName: "SY Metaphysics",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SY Metaphysics | Feng Shui & Liu Yao Consultation",
+    description:
+      "Bilingual Feng Shui analysis, Liu Yao divination, and metaphysics consultation for overseas users.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -20,6 +71,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
