@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LiuYaoBasicReadingCard from "@/components/reports/LiuYaoBasicReadingCard";
+import AIReadingCard from "@/components/reports/AIReadingCard";
 import { generateLiuYaoBasicReading } from "@/lib/liuyao-reading";
 import {
   CoinSide,
@@ -12,6 +13,7 @@ import {
   getCoinLabel,
   getLinePositionName,
 } from "@/lib/liuyao";
+
 
 const questionTypes = [
   { value: "career", label: "Career / 事业工作" },
@@ -210,6 +212,10 @@ export default function LiuYaoCaster() {
   const [questionType, setQuestionType] = useState("career");
   const [seekerGender, setSeekerGender] = useState("not_specified");
 
+  const [aiReading, setAiReading] = useState("");
+  const [aiError, setAiError] = useState("");
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
   const [timeMode, setTimeMode] = useState<TimeMode>("auto");
   const [castTimeLocal, setCastTimeLocal] = useState("");
   const [timezone, setTimezone] = useState("");
@@ -229,9 +235,6 @@ export default function LiuYaoCaster() {
   const [previewLine, setPreviewLine] = useState<LiuYaoLine | null>(null);
   const [shakePower, setShakePower] = useState(0);
   const [notice, setNotice] = useState("");
-
-  const [aiMessage, setAiMessage] = useState("");
-  const [isRequestingAi, setIsRequestingAi] = useState(false);
 
   const [leadName, setLeadName] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
@@ -320,7 +323,8 @@ export default function LiuYaoCaster() {
     setPreviewLine(null);
     setShakePower(0);
     setNotice("");
-    setAiMessage("");
+    setAiReading("");
+    setAiError("");
     setLeadError("");
     setLeadSuccess("");
   }
@@ -381,7 +385,8 @@ export default function LiuYaoCaster() {
     setCurrentCoins([]);
     setPreviewLine(null);
     setShakePower(0);
-    setAiMessage("");
+    setAiReading("");
+    setAiError("");
     setLeadError("");
     setLeadSuccess("");
 
@@ -459,7 +464,8 @@ export default function LiuYaoCaster() {
     setCurrentCoins([]);
     setPreviewLine(null);
     setShakePower(0);
-    setAiMessage("");
+    setAiReading("");
+    setAiError("");
     setLeadError("");
     setLeadSuccess("");
     setNotice("Manual hexagram has been applied. / 手动卦象已生成。");
@@ -566,45 +572,62 @@ export default function LiuYaoCaster() {
     }
   }
 
-  async function handlePaidAiReading() {
+  async function handleGenerateAIReading() {
     if (!result) {
-      setAiMessage("Please cast a hexagram first. / 请先完成起卦。");
+      setAiError("Please cast a hexagram first. / 请先完成起卦。");
       return;
     }
 
-    try {
-      setIsRequestingAi(true);
-      setAiMessage("");
+    setAiError("");
+    setAiReading("");
+    setIsGeneratingAI(true);
 
-      const response = await fetch("/api/liuyao-ai", {
+    try {
+      const response = await fetch("/api/ai/liuyao", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          serviceType: "liuyao",
           question,
           questionType,
           seekerGender,
           castTimeLocal,
           timezone,
-          primaryHexagram: result.primary,
-          changedHexagram: result.changed,
+          primaryHexagram: {
+            number: result.primary.number,
+            name: result.primary.name,
+            nameZh: result.primary.nameZh,
+          },
+          changedHexagram: {
+            number: result.changed.number,
+            name: result.changed.name,
+            nameZh: result.changed.nameZh,
+          },
+          hasChangingLines: result.hasChangingLines,
           changingPositions: result.changingPositions,
+          lines,
+          freeReading: basicReading,
         }),
       });
 
       const data = await response.json();
 
-      setAiMessage(
-        data.message ||
-          "AI interpretation is a paid feature. / AI 解卦为付费功能。",
-      );
-    } catch {
-      setAiMessage(
-        "Unable to connect to the AI reading interface. / 暂时无法连接 AI 解卦接口。",
-      );
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Failed to generate Liu Yao AI reading.");
+      }
+
+      setAiReading(data.reading);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to generate Liu Yao AI reading.";
+
+      setAiError(message);
     } finally {
-      setIsRequestingAi(false);
+      setIsGeneratingAI(false);
     }
   }
 
@@ -1120,39 +1143,51 @@ export default function LiuYaoCaster() {
               <LiuYaoBasicReadingCard reading={basicReading} />
             ) : null}
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-              <h3 className="text-xl font-semibold text-white">
-                Paid AI Interpretation / 付费 AI 解卦
+            <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-5">
+              <p className="text-sm uppercase tracking-[0.28em] text-emerald-200">
+                AI Interpretation / AI 解读
+              </p>
+
+              <h3 className="mt-4 text-xl font-semibold text-white">
+                Generate a preliminary Liu Yao AI reading
               </h3>
 
               <p className="mt-3 text-sm leading-7 text-zinc-400">
-                AI interpretation is designed as a paid feature. It can later be
-                connected to Stripe, PayPal, or another payment system before
-                returning a full reading.
+                The AI reading will explain the primary hexagram, changed
+                hexagram, changing lines, and the tendency of the question. It
+                is still a preliminary interpretation and will reserve detailed
+                judgment for human consultation.
               </p>
 
               <p className="mt-3 text-sm leading-7 text-zinc-500">
-                AI 解卦建议作为付费功能。后续可以接入 Stripe、PayPal
-                或其他支付系统，完成支付后再返回完整解卦内容。
+                AI 解读会说明本卦、变卦、动爻和所问事项倾向，但仍属于初步层级，不会替代人工细断。
               </p>
 
               <button
                 type="button"
-                onClick={handlePaidAiReading}
-                disabled={isRequestingAi}
-                className="mt-5 rounded-full border border-amber-300/30 px-5 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleGenerateAIReading}
+                disabled={isGeneratingAI}
+                className="mt-5 rounded-full bg-emerald-300 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isRequestingAi
-                  ? "Checking access... / 正在检测权限..."
-                  : "Unlock AI Reading / 付费解锁 AI 解卦"}
+                {isGeneratingAI
+                  ? "Generating AI Reading... / AI 解读中..."
+                  : "Generate Liu Yao AI Reading / 生成六爻 AI 解读"}
               </button>
-
-              {aiMessage ? (
-                <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-7 text-amber-100">
-                  {aiMessage}
-                </div>
-              ) : null}
             </div>
+
+            {aiError ? (
+              <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {aiError}
+              </div>
+            ) : null}
+
+            {aiReading ? (
+              <AIReadingCard
+                title="Liu Yao AI Preliminary Interpretation"
+                zhTitle="六爻 AI 初步解读"
+                reading={aiReading}
+              />
+            ) : null}
 
             <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5">
               <h3 className="text-xl font-semibold text-amber-100">
