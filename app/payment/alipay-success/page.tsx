@@ -10,6 +10,7 @@ export default function AlipaySuccessPage() {
             <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
               Alipay Payment / 支付宝支付
             </p>
+
             <h1 className="mt-4 text-3xl font-semibold">
               Loading payment result... / 正在读取支付结果...
             </h1>
