@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FloatingContactCTA from "@/components/marketing/FloatingContactCTA";
+import ServiceContactSection from "@/components/marketing/ServiceContactSection";
 import "./globals.css";
 
 const siteUrl =
@@ -71,6 +72,7 @@ export default function RootLayout({
       <body>
         <Navbar />
         {children}
+        <ServiceContactSection />
         <Footer />
         <FloatingContactCTA />
         <Analytics />
