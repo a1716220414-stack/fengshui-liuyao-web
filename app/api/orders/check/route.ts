@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     let query = supabaseAdmin
       .from("ai_orders")
       .select(
-        "id, service_type, amount_cny, status, provider_order_id, provider_trade_no, consumed, created_at",
+        "id, service_type, amount_cny, status, provider_order_id, provider_trade_no, consumed, ai_result, created_at",
       );
 
     if (orderId) {

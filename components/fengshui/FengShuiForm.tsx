@@ -86,16 +86,16 @@ function TextInput({
 }
 
 export default function FengShuiForm() {
-  const [formData, setFormData] = useState<FengShuiFormData>(initialFormData);
+  const [formData, setFormData] =
+    useState<FengShuiFormData>(initialFormData);
   const [error, setError] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  const [freeReport, setFreeReport] = useState<FengShuiInsightReport | null>(
-    null,
-  );
+  const [freeReport, setFreeReport] =
+    useState<FengShuiInsightReport | null>(null);
   const [aiReading, setAiReading] = useState("");
   const [aiError, setAiError] = useState("");
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -182,45 +182,75 @@ export default function FengShuiForm() {
     setError("");
   }
 
-  async function handleGenerateAIReading() {
+  async function handlePayAndUnlockAIReading() {
     setAiError("");
     setAiReading("");
     setError("");
-    setIsGeneratingAI(true);
+    setSaveMessage("");
+    setIsCreatingPayment(true);
 
     try {
       const reportForAI = freeReport ?? buildCurrentFreeReport();
 
-      const response = await fetch("/api/ai/fengshui", {
+      setFreeReport(reportForAI);
+
+      const response = await fetch("/api/alipay/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           serviceType: "fengshui",
-          formData,
-          freeReport: reportForAI,
-          uploadedFileCount: selectedFiles.length,
+          customer: {
+            name: formData.name,
+            email: formData.email,
+            wechat: formData.wechat,
+            xAccount: formData.xAccount,
+            instagram: formData.instagram,
+          },
+          requestPayload: {
+            serviceType: "fengshui",
+            formData,
+            freeReport: reportForAI,
+            uploadedFileCount: selectedFiles.length,
+          },
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.error || "Failed to generate AI reading.");
+        throw new Error(data.message || "Failed to create payment order.");
       }
 
-      setFreeReport(null);
-      setAiReading(data.reading);
-    } catch (error) {
+      window.localStorage.setItem(
+        `sy-ai-reading-payload:${data.providerOrderId}`,
+        JSON.stringify({
+          serviceType: "fengshui",
+          aiRequestBody: {
+            serviceType: "fengshui",
+            formData,
+            freeReport: reportForAI,
+            uploadedFileCount: selectedFiles.length,
+          },
+        }),
+      );
+
+      window.localStorage.setItem(
+        "sy-ai-last-provider-order-id",
+        data.providerOrderId,
+      );
+
+      window.location.href = data.payUrl;
+    } catch (caughtError) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to generate AI reading.";
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Failed to create payment order.";
 
       setAiError(message);
     } finally {
-      setIsGeneratingAI(false);
+      setIsCreatingPayment(false);
     }
   }
 
@@ -249,10 +279,10 @@ export default function FengShuiForm() {
       setSaveMessage(
         "Thank you. We have received your request and will follow up based on your preferred contact method. / 感谢提交。我们已经收到你的需求，并会根据你选择的联系方式进行后续跟进。",
       );
-    } catch (error) {
+    } catch (caughtError) {
       const message =
-        error instanceof Error
-          ? error.message
+        caughtError instanceof Error
+          ? caughtError.message
           : "Failed to save your information.";
 
       setError(message);
@@ -274,7 +304,7 @@ export default function FengShuiForm() {
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-stone-400">
-            填写住宅或单个房间信息后，可以选择生成免费报告、AI
+            填写住宅或单个房间信息后，可以选择生成免费报告、支付解锁 AI
             初步解读，或提交咨询需求。三个按钮功能相互独立。
           </p>
         </div>
@@ -653,13 +683,13 @@ export default function FengShuiForm() {
 
             <button
               type="button"
-              onClick={handleGenerateAIReading}
-              disabled={isGeneratingAI}
+              onClick={handlePayAndUnlockAIReading}
+              disabled={isCreatingPayment}
               className="rounded-full border border-emerald-300/40 px-6 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isGeneratingAI
-                ? "Generating AI... / AI 解读中..."
-                : "Generate AI Reading / 生成 AI 解读"}
+              {isCreatingPayment
+                ? "Creating Payment... / 正在创建支付订单..."
+                : "Pay and Unlock AI Reading / 支付解锁 AI 解读"}
             </button>
 
             <button
@@ -701,11 +731,13 @@ export default function FengShuiForm() {
             </h3>
 
             <p className="mt-3 text-sm leading-7 text-stone-400">
-              Fill in the information, then choose Free Report or AI Reading.
+              Fill in the information, then choose Free Report or paid AI
+              Reading.
             </p>
 
             <p className="mt-2 text-sm leading-7 text-stone-500">
-              填写左侧信息后，可以选择生成免费报告或 AI 解读。提交咨询需求只用于保存联系方式和后续跟进。
+              填写左侧信息后，可以选择生成免费报告，或通过支付宝支付后解锁
+              AI 解读。提交咨询需求只用于保存联系方式和后续跟进。
             </p>
 
             <div className="mt-8 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5 text-left">
@@ -718,7 +750,8 @@ export default function FengShuiForm() {
                   1. Generate Free Report：生成一份规则型免费初步报告。
                 </p>
                 <p>
-                  2. Generate AI Reading：调用 AI 生成更完整的初步解读。
+                  2. Pay and Unlock AI Reading：创建支付宝订单，支付成功后自动生成更完整的
+                  AI 初步解读。
                 </p>
                 <p>
                   3. Submit Request：提交联系方式和咨询需求，便于后续人工跟进。

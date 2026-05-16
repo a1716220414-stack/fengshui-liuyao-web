@@ -572,7 +572,7 @@ export default function LiuYaoCaster() {
     }
   }
 
-  async function handleGenerateAIReading() {
+  async function handlePayAndUnlockAIReading() {
     if (!result) {
       setAiError("Please cast a hexagram first. / 请先完成起卦。");
       return;
@@ -583,50 +583,74 @@ export default function LiuYaoCaster() {
     setIsGeneratingAI(true);
 
     try {
-      const response = await fetch("/api/ai/liuyao", {
+      const aiRequestBody = {
+        serviceType: "liuyao",
+        question,
+        questionType,
+        seekerGender,
+        castTimeLocal,
+        timezone,
+        primaryHexagram: {
+          number: result.primary.number,
+          name: result.primary.name,
+          nameZh: result.primary.nameZh,
+        },
+        changedHexagram: {
+          number: result.changed.number,
+          name: result.changed.name,
+          nameZh: result.changed.nameZh,
+        },
+        hasChangingLines: result.hasChangingLines,
+        changingPositions: result.changingPositions,
+        lines,
+        freeReading: basicReading,
+      };
+
+      const response = await fetch("/api/alipay/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           serviceType: "liuyao",
-          question,
-          questionType,
-          seekerGender,
-          castTimeLocal,
-          timezone,
-          primaryHexagram: {
-            number: result.primary.number,
-            name: result.primary.name,
-            nameZh: result.primary.nameZh,
+          customer: {
+            name: leadName,
+            email: leadEmail,
+            wechat: leadWechat,
+            xAccount: leadXAccount,
+            instagram: leadInstagram,
           },
-          changedHexagram: {
-            number: result.changed.number,
-            name: result.changed.name,
-            nameZh: result.changed.nameZh,
-          },
-          hasChangingLines: result.hasChangingLines,
-          changingPositions: result.changingPositions,
-          lines,
-          freeReading: basicReading,
+          requestPayload: aiRequestBody,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.error || "Failed to generate Liu Yao AI reading.");
+        throw new Error(data.message || "Failed to create payment order.");
       }
 
-      setAiReading(data.reading);
+      window.localStorage.setItem(
+        `sy-ai-reading-payload:${data.providerOrderId}`,
+        JSON.stringify({
+          serviceType: "liuyao",
+          aiRequestBody,
+        }),
+      );
+
+      window.localStorage.setItem(
+        "sy-ai-last-provider-order-id",
+        data.providerOrderId,
+      );
+
+      window.location.href = data.payUrl;
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to generate Liu Yao AI reading.";
+          : "Failed to create payment order.";
 
       setAiError(message);
-    } finally {
       setIsGeneratingAI(false);
     }
   }
@@ -1149,29 +1173,29 @@ export default function LiuYaoCaster() {
               </p>
 
               <h3 className="mt-4 text-xl font-semibold text-white">
-                Generate a preliminary Liu Yao AI reading
+                Pay to unlock a preliminary Liu Yao AI reading
               </h3>
 
               <p className="mt-3 text-sm leading-7 text-zinc-400">
-                The AI reading will explain the primary hexagram, changed
-                hexagram, changing lines, and the tendency of the question. It
-                is still a preliminary interpretation and will reserve detailed
-                judgment for human consultation.
+                After Alipay payment is completed, the system will verify the
+                paid order and generate a preliminary AI interpretation of the
+                primary hexagram, changed hexagram, changing lines, and the
+                tendency of the question.
               </p>
 
               <p className="mt-3 text-sm leading-7 text-zinc-500">
-                AI 解读会说明本卦、变卦、动爻和所问事项倾向，但仍属于初步层级，不会替代人工细断。
+                支付宝支付成功后，系统会验证订单状态并自动生成六爻 AI 初步解读。该结果仍属于初步层级，不会替代人工细断。
               </p>
 
               <button
                 type="button"
-                onClick={handleGenerateAIReading}
+                onClick={handlePayAndUnlockAIReading}
                 disabled={isGeneratingAI}
                 className="mt-5 rounded-full bg-emerald-300 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGeneratingAI
-                  ? "Generating AI Reading... / AI 解读中..."
-                  : "Generate Liu Yao AI Reading / 生成六爻 AI 解读"}
+                  ? "Creating Payment Order... / 正在创建支付订单..."
+                  : "Pay and Unlock Liu Yao AI Reading / 支付解锁六爻 AI 解读"}
               </button>
             </div>
 
