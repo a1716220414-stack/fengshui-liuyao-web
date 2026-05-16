@@ -25,6 +25,18 @@ const gateways = [
     button: "Start Liu Yao Casting / 开始六爻起卦",
     symbols: ["卦", "爻", "问", "变"],
   },
+  {
+    eyebrow: "Zhengyi Taoist / 正一道",
+    title: "Ritual, blessing, and ceremonial consultation",
+    zhTitle: "斋醮科仪，祈福安宅",
+    description:
+      "Explore Taoist ritual-related consultation such as blessing, home peace, thanksgiving, memorial, consecration, and date selection.",
+    zhDescription:
+      "适合咨询祈福、安宅、还愿、追思、开光、择日和仪式规划等正一道相关服务需求。",
+    href: "/taoist",
+    button: "Explore Taoist Services / 查看正一道服务",
+    symbols: ["道", "符", "醮", "斋"],
+  },
 ];
 
 const processSteps = [
@@ -44,10 +56,10 @@ const processSteps = [
   },
   {
     number: "三",
-    title: "Request deeper interpretation",
+    title: "Request deeper consultation",
     zhTitle: "终作深度推演，给出建议",
-    text: "Paid consultation can provide more detailed reading, practical advice, and follow-up communication.",
-    zhText: "付费咨询可进一步结合具体背景，给出更完整的解读与可执行建议。",
+    text: "Paid consultation can provide more detailed reading, ritual inquiry support, practical advice, and follow-up communication.",
+    zhText: "付费咨询可进一步结合具体背景，给出更完整的解读、仪式咨询与可执行建议。",
   },
 ];
 
@@ -55,20 +67,20 @@ const trustItems = [
   {
     title: "Private by default",
     zhTitle: "资料默认私密",
-    text: "Submitted floor plans, room photos, questions, and contact information are used for analysis and follow-up only.",
-    zhText: "用户提交的户型图、房间照片、占问问题和联系方式，仅用于分析与后续沟通，不在网站公开展示。",
+    text: "Submitted floor plans, room photos, questions, ritual inquiries, and contact information are used for analysis and follow-up only.",
+    zhText: "用户提交的户型图、房间照片、占问问题、法事需求和联系方式，仅用于分析与后续沟通，不在网站公开展示。",
   },
   {
     title: "Bilingual service",
     zhTitle: "中英文双语",
     text: "Designed for overseas users while preserving the structure and language of Chinese metaphysics.",
-    zhText: "面向海外用户设计，同时保留风水、六爻和东方玄学的核心表达。",
+    zhText: "面向海外用户设计，同时保留风水、六爻、正一道和东方玄学的核心表达。",
   },
   {
     title: "Clear boundary",
     zhTitle: "边界清晰",
-    text: "Readings are for cultural, reflective, lifestyle, and spatial guidance, not guaranteed predictions.",
-    zhText: "分析结果用于文化体验、个人反思、生活方式和空间建议，不构成确定性承诺。",
+    text: "Readings and ritual inquiries are for cultural, reflective, lifestyle, spiritual, and spatial guidance, not guaranteed predictions.",
+    zhText: "分析与法事咨询用于文化体验、个人反思、生活方式、精神支持和空间建议，不构成确定性承诺。",
   },
 ];
 
@@ -82,20 +94,20 @@ const serviceTiers = [
       "适合首次体验用户，用于先了解住宅格局或所问之事的大致方向。",
   },
   {
-    title: "Floor Plan & Room Review",
-    zhTitle: "户型图与房间深度分析",
+    title: "Feng Shui & Liu Yao Consultation",
+    zhTitle: "风水与六爻深度咨询",
     content:
-      "Suitable for users who can provide floor plans, room photos, directions, and specific concerns.",
+      "Suitable for users who need more specific analysis based on floor plans, room photos, questions, hexagrams, and personal context.",
     zhContent:
-      "适合可以提供户型图、房间照片、朝向信息和具体问题的用户。",
+      "适合需要结合户型图、房间照片、具体问题、卦象和背景信息进行更细致分析的用户。",
   },
   {
-    title: "Liu Yao Deeper Reading",
-    zhTitle: "六爻深度解卦",
+    title: "Taoist Ritual Inquiry",
+    zhTitle: "正一道法事咨询",
     content:
-      "Suitable for users who need interpretation of useful god, changing lines, timing, and practical advice.",
+      "Suitable for users who want to inquire about blessing, home peace, memorial, thanksgiving, consecration, or ritual planning.",
     zhContent:
-      "适合需要进一步判断用神、世应、动爻、变卦、时机和行动建议的用户。",
+      "适合希望咨询祈福、安宅、追思、还愿、开光、择日和仪式规划等服务的用户。",
   },
 ];
 
@@ -113,10 +125,10 @@ const faqItems = [
     zhA: "可以。风水页面支持上传户型图和房间实景照片，便于后续进一步分析。",
   },
   {
-    q: "Can I enter a hexagram I already cast offline?",
-    zhQ: "已经在线下起好的卦可以录入吗？",
-    a: "Yes. The Liu Yao page supports manual hexagram input from the first line to the top line.",
-    zhA: "可以。六爻页面支持手动选卦，可以从初爻到上爻录入已有卦象。",
+    q: "Can I ask about Taoist ritual services?",
+    zhQ: "可以咨询正一道法事服务吗？",
+    a: "Yes. You can first describe your purpose, location, time zone, and preferred contact method on the Taoist service page or Contact page.",
+    zhA: "可以。你可以先在正一道服务页或联系页说明诉求、所在地区、时区和优先联系方式。",
   },
 ];
 
@@ -141,36 +153,43 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-8 text-4xl font-semibold leading-tight tracking-tight text-stone-50 md:text-7xl">
-              Eastern wisdom for space, timing, and decisions
+              Eastern wisdom for space, timing, ritual, and decisions
             </h1>
 
             <h2 className="mt-6 text-3xl font-medium leading-relaxed text-amber-100 md:text-5xl">
-              观宅察气，六爻问事
+              观宅察气，六爻问事，道法祈安
             </h2>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-stone-300 md:text-lg">
-              A bilingual Feng Shui and Liu Yao consultation website for
-              overseas users. Start with a free preliminary reading, then
-              request deeper paid consultation when needed.
+              A bilingual Feng Shui, Liu Yao, and Taoist ritual consultation
+              website for overseas users. Start with a free preliminary reading,
+              then request deeper consultation when needed.
             </p>
 
             <p className="mt-4 max-w-2xl text-base leading-8 text-stone-500">
-              面向海外用户的东方玄学服务网站。先以免费初判了解方向，再根据户型、照片、卦象和背景信息申请深度咨询。
+              面向海外用户的东方玄学服务网站。先以免费初判了解方向，再根据户型、照片、卦象、背景信息或法事需求申请深度咨询。
             </p>
 
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               <Link
                 href="/fengshui"
                 className="rounded-full bg-amber-300 px-7 py-4 text-center text-sm font-semibold text-black shadow-lg shadow-amber-950/30 transition hover:bg-amber-200"
               >
-                Free Feng Shui Reading / 免费风水检测
+                Feng Shui / 风水分析
               </Link>
 
               <Link
                 href="/liuyao"
                 className="rounded-full border border-amber-200/40 px-7 py-4 text-center text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10"
               >
-                Liu Yao Casting / 六爻起卦
+                Liu Yao / 六爻起卦
+              </Link>
+
+              <Link
+                href="/taoist"
+                className="rounded-full border border-emerald-200/40 px-7 py-4 text-center text-sm font-semibold text-emerald-100 transition hover:bg-emerald-200/10"
+              >
+                Taoist Services / 正一道服务
               </Link>
             </div>
           </div>
@@ -183,7 +202,7 @@ export default function HomePage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-[0.35em] text-amber-200">
-                      易 · 宅 · 卦
+                      易 · 宅 · 道
                     </p>
                     <p className="mt-3 text-2xl font-semibold text-white">
                       SY Metaphysics
@@ -196,7 +215,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-10 grid grid-cols-3 gap-3">
-                  {["乾", "坤", "震", "巽", "坎", "离", "艮", "兑", "中"].map(
+                  {["乾", "坤", "震", "巽", "坎", "离", "艮", "兑", "道"].map(
                     (item) => (
                       <div
                         key={item}
@@ -235,14 +254,14 @@ export default function HomePage() {
       <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">
           <SectionTitle
-            eyebrow="Two Gateways / 两个入口"
+            eyebrow="Three Gateways / 三个入口"
             title="Choose by what you want to ask"
             zhTitle="因事择法，因问入门"
-            text="Home and room layout questions are better suited for Feng Shui. Specific life, relationship, career, wealth, or timing questions are better suited for Liu Yao."
-            zhText="住宅、房间、户型和空间格局问题，适合风水分析；工作、感情、财务、选择和时机问题，适合六爻占问。"
+            text="Home and room layout questions are better suited for Feng Shui. Specific questions are better suited for Liu Yao. Ritual, blessing, and ceremonial matters enter through Taoist services."
+            zhText="住宅、房间与空间格局入风水；工作、感情、财务、选择和时机入六爻；祈福、安宅、还愿、追思与仪式规划入正一道服务。"
           />
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
             {gateways.map((item) => (
               <article
                 key={item.title}
@@ -263,7 +282,7 @@ export default function HomePage() {
                   {item.eyebrow}
                 </p>
 
-                <h3 className="mt-4 text-3xl font-semibold text-white">
+                <h3 className="mt-4 text-2xl font-semibold text-white">
                   {item.title}
                 </h3>
 
@@ -364,14 +383,15 @@ export default function HomePage() {
           <div className="mt-8 flex flex-col gap-4 rounded-[1.75rem] border border-amber-200/20 bg-amber-200/10 p-6 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-xl font-semibold text-amber-100">
-                Need a more specific reading?
+                Need a more specific consultation?
               </h3>
               <p className="mt-2 text-sm leading-7 text-stone-400">
-                Submit your details through Feng Shui or Liu Yao, then we can
-                follow up based on your preferred contact method.
+                Submit your details through Feng Shui, Liu Yao, or Taoist
+                Services, then we can follow up based on your preferred contact
+                method.
               </p>
               <p className="mt-1 text-sm leading-7 text-stone-500">
-                如需更具体分析，请通过风水或六爻页面提交资料，我们会根据你的联系方式跟进。
+                如需更具体分析，请通过风水、六爻或正一道服务页面提交资料，我们会根据你的联系方式跟进。
               </p>
             </div>
 
@@ -391,8 +411,8 @@ export default function HomePage() {
             eyebrow="Trust / 信任"
             title="Private, clear, and practical"
             zhTitle="守隐私，明边界，重实用"
-            text="For overseas users, trust matters before they upload a floor plan, room photo, or personal question."
-            zhText="对于海外用户而言，在上传户型图、房间照片或个人问题之前，必须先看见清晰的隐私说明与服务边界。"
+            text="For overseas users, trust matters before they upload a floor plan, room photo, personal question, or ritual request."
+            zhText="对于海外用户而言，在上传户型图、房间照片、个人问题或法事需求之前，必须先看见清晰的隐私说明与服务边界。"
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-3">
@@ -424,14 +444,14 @@ export default function HomePage() {
             </h3>
 
             <p className="mt-4 text-sm leading-7 text-stone-300">
-              Feng Shui, Liu Yao, and metaphysics services are provided for
-              cultural, lifestyle, reflective, and spatial guidance. They should
-              not replace legal, medical, financial, psychological, or other
-              professional advice.
+              Feng Shui, Liu Yao, and Taoist ritual inquiries are provided for
+              cultural, lifestyle, reflective, spiritual, and spatial guidance.
+              They should not replace legal, medical, financial, psychological,
+              or other professional advice.
             </p>
 
             <p className="mt-3 text-sm leading-7 text-stone-500">
-              风水、六爻与玄学服务主要用于文化体验、生活方式参考、个人反思和空间建议，不替代法律、医疗、财务、心理或其他专业意见。
+              风水、六爻与正一道服务主要用于文化体验、生活方式参考、个人反思、精神支持和空间建议，不替代法律、医疗、财务、心理或其他专业意见。
             </p>
 
             <Link
@@ -484,36 +504,43 @@ export default function HomePage() {
           </p>
 
           <h2 className="mt-4 text-3xl font-semibold text-white md:text-5xl">
-            Begin with one clear question
+            Begin with one clear question or request
           </h2>
 
           <p className="mt-4 text-3xl text-amber-100 md:text-4xl">
-            一念既起，卦象自成
+            一念既起，象法自明
           </p>
 
           <p className="mt-6 text-sm leading-7 text-stone-400">
             Choose Feng Shui for home or room layout. Choose Liu Yao for a
-            focused question about timing, relationship, career, wealth, or
-            decisions.
+            focused question. Choose Taoist Services for ritual, blessing,
+            memorial, or ceremonial inquiry.
           </p>
 
           <p className="mt-3 text-sm leading-7 text-stone-500">
-            住宅与房间格局，入风水；具体事情与时机判断，入六爻。
+            住宅与房间格局，入风水；具体事情与时机判断，入六爻；祈福、安宅、追思与仪式咨询，入正一道服务。
           </p>
 
-          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row sm:flex-wrap">
             <Link
               href="/fengshui"
               className="rounded-full bg-amber-300 px-7 py-4 text-sm font-semibold text-black transition hover:bg-amber-200"
             >
-              Feng Shui Reading / 风水分析
+              Feng Shui / 风水分析
             </Link>
 
             <Link
               href="/liuyao"
               className="rounded-full border border-amber-200/40 px-7 py-4 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10"
             >
-              Liu Yao Casting / 六爻占问
+              Liu Yao / 六爻占问
+            </Link>
+
+            <Link
+              href="/taoist"
+              className="rounded-full border border-emerald-200/40 px-7 py-4 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-200/10"
+            >
+              Taoist / 正一道服务
             </Link>
           </div>
         </div>
