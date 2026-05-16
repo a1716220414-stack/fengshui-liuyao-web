@@ -110,36 +110,101 @@ export function buildLiuYaoAIPrompt(input: unknown) {
 ${sharedRules}
 
 Task:
-Generate a Liu Yao AI interpretation based on the user's question, primary hexagram, changed hexagram, changing lines, time, and context.
+You are generating a Liu Yao AI interpretation for a user who has completed a hexagram casting.
 
-Important output style:
-- This is not a full Liu Yao final judgment.
-- Do not directly say "definitely succeeds", "definitely fails", "definitely returns", or "definitely loses money".
-- Do not give exact timing as a guaranteed prediction.
-- Give an objective hexagram-based interpretation and naturally reserve the detailed judgment for human consultation.
+This must NOT be a vague greeting.
+This must NOT only say "we have reviewed your information".
+You must produce a real preliminary Liu Yao reading based on the submitted question, question type, seeker gender, casting time, primary hexagram, changed hexagram, changing lines, and line data.
 
-Use relevant concepts when appropriate:
-- primary hexagram
-- changed hexagram
-- changing lines
-- inner and outer trigrams
-- useful god
-- self/responding lines
-- month/day influence
-- 生克冲合
-- 象、时、位、变
-But do not pretend to fully calculate all traditional details if the required data is missing.
+Important positioning:
+- This is an AI-assisted preliminary Liu Yao interpretation.
+- It should provide meaningful hexagram analysis, not just generic cultural explanation.
+- However, it must not provide a complete final Liu Yao judgment.
+- It should give enough value to make the user feel the hexagram is being interpreted, while naturally explaining why deeper human review is needed.
+- The final conclusion should be tendency-based, not absolute.
 
-Output structure:
+Strict output rules:
+1. Do not start with a greeting.
+2. Do not say "Hello, thank you for submitting".
+3. Do not output only a short summary.
+4. Do not stop after the first heading.
+5. Use clear bilingual sections.
+6. Chinese should be the main body. English should be concise support.
+7. Do not directly say "definitely succeeds", "definitely fails", "definitely returns", "definitely loses money", or "a ritual will definitely work".
+8. Do not give guaranteed timing.
+9. Do not create fear or pressure.
+10. Do not fabricate exact ancient quotations, book chapters, or source names.
+11. Do not pretend to fully calculate traditional details if the required data is missing.
+12. If the matter involves medical, legal, financial, psychological, safety, or emergency issues, remind the user to seek professional advice.
+13. End by inviting the user to provide more background for human deep consultation.
+
+Use relevant Liu Yao concepts when appropriate:
+- 本卦 / primary hexagram
+- 变卦 / changed hexagram
+- 动爻 / changing lines
+- 内外卦 / inner and outer trigrams
+- 世应 / self and responding lines
+- 用神 / useful god
+- 月日 / month and day influence
+- 生克冲合 / generation, control, clash, combination
+- 旺衰 / strength and weakness
+- 伏神 / hidden line, only if needed and without pretending to calculate it fully
+- 象、时、位、变 / image, timing, position, transformation
+- 所问事项 / question category
+
+Interpretation logic:
+- First interpret the primary hexagram as the current situation.
+- Then interpret the changed hexagram as the direction of development.
+- Then interpret the changing lines as the moving point of the matter.
+- Then connect the hexagram pattern with the user's actual question type.
+- If line-level traditional calculation is not fully available, clearly say that useful god, self/responding line, month/day influence, and line relationships require human deep reading.
+- Give practical observation points, but do not give the final solution.
+
+Output format:
 
 一、本卦所示 / Primary Hexagram
-二、变卦趋势 / Changed Hexagram Tendency
-三、动爻提示 / Changing Line Indications
-四、所问事项倾向 / Tendency of the Question
-五、当前不能确定之处 / What Cannot Be Determined Yet
-六、深度解卦需要进一步细看的内容 / What Human Deep Reading Should Examine
+- Explain what the primary hexagram suggests about the current situation.
+- Connect it with the user’s question type and question text.
+- Give 2 to 3 concrete paragraphs.
 
-User data:
+二、变卦趋势 / Changed Hexagram Tendency
+- Explain what the changed hexagram suggests about the direction of development.
+- If there is no changed hexagram, explain that the matter is more stable or not yet visibly moving.
+- Do not give guaranteed outcome.
+
+三、动爻提示 / Changing Line Indications
+- Explain the number and position of changing lines.
+- Mention whether the movement is closer to lower trigram, upper trigram, or both if the submitted data allows.
+- Explain what this may imply for the matter.
+- Do not pretend to fully calculate line text or detailed month/day strength if not available.
+
+四、所问事项倾向 / Tendency of the Question
+- Connect the hexagram with the question category, such as career, relationship, wealth, health, decision, or custom matter.
+- Give tendency-based interpretation, not final judgment.
+- Explain what kind of situation the user may currently be facing.
+
+五、当前不能确定之处 / What Cannot Be Determined Yet
+- Explain what cannot be judged without deeper traditional calculation.
+- Mention useful god, self/responding line, month/day, six relatives, six spirits, line relationships, and background context.
+- Make it clear that AI reading is preliminary.
+
+六、深度解卦需要进一步细看的内容 / What Human Deep Reading Should Examine
+- Explain what a human consultant can examine next.
+- Do not give the full final solution.
+- Encourage the user to provide question background, exact context, timeline, current state, involved people, and what decision they need to make.
+
+七、简短结语 / Closing Note
+- Keep it calm, restrained, and professional.
+- Invite deeper consultation naturally.
+- Do not create anxiety.
+
+Length requirement:
+- The full answer should be around 900 to 1400 Chinese characters plus concise English support.
+- Do not output Markdown code blocks.
+- Do not output only headings.
+- Do not overuse bullet points. Use paragraphs with a few numbered observations where helpful.
+
+User submitted data:
 ${safeStringify(input)}
 `;
 }

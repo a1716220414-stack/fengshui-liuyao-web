@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const reading = await generateAIReading({
       prompt,
-      maxOutputTokens: 1300,
+      maxOutputTokens: 5000,
     });
 
     return NextResponse.json(
