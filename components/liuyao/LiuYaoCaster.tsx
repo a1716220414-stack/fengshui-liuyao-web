@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import LiuYaoBasicReadingCard from "@/components/reports/LiuYaoBasicReadingCard";
+import { generateLiuYaoBasicReading } from "@/lib/liuyao-reading";
 import {
   CoinSide,
   LiuYaoLine,
@@ -247,6 +249,40 @@ export default function LiuYaoCaster() {
   const shakeStartTimeRef = useRef<number>(0);
 
   const result = useMemo(() => buildHexagramResult(lines), [lines]);
+  const basicReading = useMemo(() => {
+    if (!result) {
+      return null;
+    }
+
+    return generateLiuYaoBasicReading({
+      question,
+      questionType,
+      seekerGender,
+      castTimeLocal,
+      timezone,
+      primaryHexagram: {
+        number: result.primary.number,
+        name: result.primary.name,
+        nameZh: result.primary.nameZh,
+      },
+      changedHexagram: {
+        number: result.changed.number,
+        name: result.changed.name,
+        nameZh: result.changed.nameZh,
+      },
+      hasChangingLines: result.hasChangingLines,
+      changingPositions: result.changingPositions,
+      lines,
+    });
+  }, [
+    result,
+    question,
+    questionType,
+    seekerGender,
+    castTimeLocal,
+    timezone,
+    lines,
+  ]);
 
   useEffect(() => {
     setCastTimeLocal((prev) => prev || formatLocalDateTimeInput());
@@ -1079,6 +1115,10 @@ export default function LiuYaoCaster() {
                 </>
               )}
             </div>
+
+            {basicReading ? (
+              <LiuYaoBasicReadingCard reading={basicReading} />
+            ) : null}
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
               <h3 className="text-xl font-semibold text-white">

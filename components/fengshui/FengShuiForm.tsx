@@ -1,11 +1,14 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useState } from "react";
+import FengShuiReportCard from "@/components/reports/FengShuiReportCard";
 import {
   FengShuiFormData,
   FengShuiReport,
   generateFengShuiReport,
 } from "@/lib/fengshuiReport";
+import { generateFengShuiReport as generateFengShuiInsightReport } from "@/lib/fengshui-insights";
+import type { FengShuiReport as FengShuiInsightReport } from "@/lib/fengshui-insights";
 
 const initialFormData: FengShuiFormData = {
   name: "",
@@ -90,6 +93,9 @@ export default function FengShuiForm() {
   const [report, setReport] = useState<FengShuiReport | null>(null);
   const [error, setError] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [freeReport, setFreeReport] = useState<FengShuiInsightReport | null>(
+    null,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [savedLeadId, setSavedLeadId] = useState("");
@@ -147,6 +153,26 @@ export default function FengShuiForm() {
         formData.xAccount.trim() ||
         formData.instagram.trim(),
     );
+  }
+
+  function handleGenerateFreeReport() {
+    const report = generateFengShuiInsightReport({
+      houseType: formData.houseType,
+      facingDirection: formData.facingDirection,
+      analysisScope: formData.analysisScope,
+      targetRoomType: formData.targetRoomType,
+      targetRoomArea: formData.targetRoomArea,
+      roomPurpose: formData.roomPurpose,
+      mainDoorArea: formData.mainDoorArea,
+      bedroomArea: formData.bedroomArea,
+      kitchenArea: formData.kitchenArea,
+      bathroomArea: formData.bathroomArea,
+      mainConcern: formData.mainConcern,
+      notes: formData.notes,
+      uploadedFileCount: selectedFiles.length,
+    });
+
+    setFreeReport(report);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -578,6 +604,14 @@ export default function FengShuiForm() {
           ) : null}
 
           <button
+            type="button"
+            onClick={handleGenerateFreeReport}
+            className="rounded-full border border-amber-300/40 px-6 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10"
+          >
+            Generate Free Preliminary Report / 生成免费初步报告
+          </button>
+
+          <button
             type="submit"
             disabled={isSaving}
             className="w-full rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
@@ -588,6 +622,8 @@ export default function FengShuiForm() {
           </button>
         </form>
       </div>
+
+      {freeReport ? <FengShuiReportCard report={freeReport} /> : null}
 
       <div className="rounded-[1.5rem] border border-white/10 bg-black/30 p-6">
         {!report ? (
