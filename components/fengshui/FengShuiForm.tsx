@@ -3,11 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import FengShuiReportCard from "@/components/reports/FengShuiReportCard";
 import AIReadingCard from "@/components/reports/AIReadingCard";
-import {
-  FengShuiFormData,
-  FengShuiReport,
-  generateFengShuiReport,
-} from "@/lib/fengshuiReport";
+import type { FengShuiFormData } from "@/lib/fengshuiReport";
 import { generateFengShuiReport as generateFengShuiInsightReport } from "@/lib/fengshui-insights";
 import type { FengShuiReport as FengShuiInsightReport } from "@/lib/fengshui-insights";
 
@@ -91,18 +87,18 @@ function TextInput({
 
 export default function FengShuiForm() {
   const [formData, setFormData] = useState<FengShuiFormData>(initialFormData);
-  const [report, setReport] = useState<FengShuiReport | null>(null);
   const [error, setError] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
   const [freeReport, setFreeReport] = useState<FengShuiInsightReport | null>(
     null,
   );
   const [aiReading, setAiReading] = useState("");
   const [aiError, setAiError] = useState("");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
-  const [savedLeadId, setSavedLeadId] = useState("");
 
   function updateField(field: keyof FengShuiFormData, value: string) {
     setFormData((prev) => ({
@@ -117,38 +113,38 @@ export default function FengShuiForm() {
   }
 
   async function saveLeadToServer(currentFormData: FengShuiFormData) {
-  const payload = new FormData();
+    const payload = new FormData();
 
-  Object.entries(currentFormData).forEach(([key, value]) => {
-    payload.append(key, value);
-  });
+    Object.entries(currentFormData).forEach(([key, value]) => {
+      payload.append(key, value);
+    });
 
-  selectedFiles.forEach((file) => {
-    payload.append("files", file);
-  });
+    selectedFiles.forEach((file) => {
+      payload.append("files", file);
+    });
 
-  const response = await fetch("/api/fengshui-leads", {
-    method: "POST",
-    body: payload,
-  });
+    const response = await fetch("/api/fengshui-leads", {
+      method: "POST",
+      body: payload,
+    });
 
-  const result = await response.json();
+    const result = await response.json();
 
-  if (!response.ok || !result.ok) {
-    throw new Error(result.message || "Failed to save lead.");
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || "Failed to save lead.");
+    }
+
+    return result as {
+      ok: boolean;
+      leadId: string;
+      uploadedFiles: Array<{
+        name: string;
+        path: string;
+        type: string;
+        size: number;
+      }>;
+    };
   }
-
-  return result as {
-    ok: boolean;
-    leadId: string;
-    uploadedFiles: Array<{
-      name: string;
-      path: string;
-      type: string;
-      size: number;
-    }>;
-  };
-}
 
   function hasAnyContact() {
     return Boolean(
@@ -159,8 +155,8 @@ export default function FengShuiForm() {
     );
   }
 
-  function handleGenerateFreeReport() {
-    const report = generateFengShuiInsightReport({
+  function buildCurrentFreeReport() {
+    return generateFengShuiInsightReport({
       houseType: formData.houseType,
       facingDirection: formData.facingDirection,
       analysisScope: formData.analysisScope,
@@ -175,37 +171,25 @@ export default function FengShuiForm() {
       notes: formData.notes,
       uploadedFileCount: selectedFiles.length,
     });
+  }
+
+  function handleGenerateFreeReport() {
+    const report = buildCurrentFreeReport();
 
     setFreeReport(report);
+    setAiReading("");
+    setAiError("");
+    setError("");
   }
 
   async function handleGenerateAIReading() {
     setAiError("");
     setAiReading("");
+    setError("");
     setIsGeneratingAI(true);
 
     try {
-      const report =
-        freeReport ??
-        generateFengShuiInsightReport({
-          houseType: formData.houseType,
-          facingDirection: formData.facingDirection,
-          analysisScope: formData.analysisScope,
-          targetRoomType: formData.targetRoomType,
-          targetRoomArea: formData.targetRoomArea,
-          roomPurpose: formData.roomPurpose,
-          mainDoorArea: formData.mainDoorArea,
-          bedroomArea: formData.bedroomArea,
-          kitchenArea: formData.kitchenArea,
-          bathroomArea: formData.bathroomArea,
-          mainConcern: formData.mainConcern,
-          notes: formData.notes,
-          uploadedFileCount: selectedFiles.length,
-        });
-
-      if (!freeReport) {
-        setFreeReport(report);
-      }
+      const reportForAI = freeReport ?? buildCurrentFreeReport();
 
       const response = await fetch("/api/ai/fengshui", {
         method: "POST",
@@ -215,7 +199,7 @@ export default function FengShuiForm() {
         body: JSON.stringify({
           serviceType: "fengshui",
           formData,
-          freeReport: report,
+          freeReport: reportForAI,
           uploadedFileCount: selectedFiles.length,
         }),
       });
@@ -226,6 +210,7 @@ export default function FengShuiForm() {
         throw new Error(data.error || "Failed to generate AI reading.");
       }
 
+      setFreeReport(null);
       setAiReading(data.reading);
     } catch (error) {
       const message =
@@ -240,52 +225,41 @@ export default function FengShuiForm() {
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault();
+    event.preventDefault();
 
-  if (!hasAnyContact()) {
-    setError(
-      "Please provide at least one contact method. / 请至少填写一种联系方式。",
-    );
-    setReport(null);
-    return;
+    if (!hasAnyContact()) {
+      setError(
+        "Please provide at least one contact method. / 请至少填写一种联系方式。",
+      );
+      return;
+    }
+
+    if (formData.email.trim() && !formData.email.includes("@")) {
+      setError("Please enter a valid email address. / 请填写有效邮箱。");
+      return;
+    }
+
+    try {
+      setError("");
+      setSaveMessage("");
+      setIsSaving(true);
+
+      await saveLeadToServer(formData);
+
+      setSaveMessage(
+        "Thank you. We have received your request and will follow up based on your preferred contact method. / 感谢提交。我们已经收到你的需求，并会根据你选择的联系方式进行后续跟进。",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to save your information.";
+
+      setError(message);
+    } finally {
+      setIsSaving(false);
+    }
   }
-
-  if (formData.email.trim() && !formData.email.includes("@")) {
-    setError("Please enter a valid email address. / 请填写有效邮箱。");
-    setReport(null);
-    return;
-  }
-
-  try {
-    setError("");
-    setSaveMessage("");
-    setSavedLeadId("");
-    setIsSaving(true);
-
-    const nextReport = generateFengShuiReport(
-      formData,
-      selectedFiles.length,
-    );
-
-    const saveResult = await saveLeadToServer(formData);
-
-    setReport(nextReport);
-    setSavedLeadId(saveResult.leadId);
-    setSaveMessage(
-      "Thank you. We have received your request and will follow up based on your preferred contact method. / 感谢提交。我们已经收到你的需求，并会根据你选择的联系方式进行后续跟进。",
-    );
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to save your information.";
-
-    setError(message);
-    setReport(null);
-  } finally {
-    setIsSaving(false);
-  }
-}
 
   return (
     <section className="mt-12 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
@@ -294,11 +268,14 @@ export default function FengShuiForm() {
           <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
             Free Check / 免费检测
           </p>
+
           <h2 className="mt-3 text-2xl font-semibold text-white">
             Submit your home or room information
           </h2>
+
           <p className="mt-2 text-sm leading-6 text-stone-400">
-            填写住宅或单个房间信息后，系统会生成初步报告。当前版本先做本地报告生成；文件只显示名称，下一步再接入数据库和图片上传存储。
+            填写住宅或单个房间信息后，可以选择生成免费报告、AI
+            初步解读，或提交咨询需求。三个按钮功能相互独立。
           </p>
         </div>
 
@@ -390,12 +367,8 @@ export default function FengShuiForm() {
                   }
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60"
                 >
-                  <option value="wholeHome">
-                    Whole Home / 整体住宅
-                  </option>
-                  <option value="singleRoom">
-                    Single Room / 单个房间
-                  </option>
+                  <option value="wholeHome">Whole Home / 整体住宅</option>
+                  <option value="singleRoom">Single Room / 单个房间</option>
                   <option value="officeOrShop">
                     Office or Shop / 办公室或店铺
                   </option>
@@ -430,7 +403,9 @@ export default function FengShuiForm() {
                 >
                   <option value="bedroom">Bedroom / 卧室</option>
                   <option value="livingRoom">Living Room / 客厅</option>
-                  <option value="study">Study or Office Room / 书房或办公房间</option>
+                  <option value="study">
+                    Study or Office Room / 书房或办公房间
+                  </option>
                   <option value="kitchen">Kitchen / 厨房</option>
                   <option value="bathroom">Bathroom / 卫生间</option>
                   <option value="entrance">Entrance / 入户区域</option>
@@ -589,7 +564,7 @@ export default function FengShuiForm() {
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-stone-500">
-              当前版本只显示文件名，还不会真正上传。下一步接入 Supabase Storage 后，可以保存户型图、房间照片和指南针截图。
+              当前版本可以保存户型图、房间实景图或指南针截图，后续深度咨询会结合这些资料进一步判断。
             </p>
 
             <div className="mt-5">
@@ -693,151 +668,60 @@ export default function FengShuiForm() {
               className="w-full rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving
-                ? "Saving and Generating... / 正在保存并生成..."
+                ? "Submitting... / 正在提交..."
                 : "Submit Request / 提交咨询需求"}
             </button>
           </div>
         </form>
       </div>
 
-      {freeReport ? <FengShuiReportCard report={freeReport} /> : null}
-
-      {aiError ? (
-        <div className="mt-6 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {aiError}
-        </div>
-      ) : null}
-
-      {aiReading ? (
-        <AIReadingCard
-          title="Feng Shui AI Preliminary Interpretation"
-          zhTitle="风水 AI 初步解读"
-          reading={aiReading}
-        />
-      ) : null}
-
       <div className="rounded-[1.5rem] border border-white/10 bg-black/30 p-6">
-        {!report ? (
+        {aiError ? (
+          <div className="mb-6 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {aiError}
+          </div>
+        ) : null}
+
+        {aiReading ? (
+          <AIReadingCard
+            title="Feng Shui AI Preliminary Interpretation"
+            zhTitle="风水 AI 初步解读"
+            reading={aiReading}
+          />
+        ) : freeReport ? (
+          <FengShuiReportCard report={freeReport} />
+        ) : (
           <div className="flex h-full min-h-[520px] flex-col justify-center rounded-[1.25rem] border border-dashed border-white/10 p-6 text-center">
             <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
               Report Preview
             </p>
+
             <h3 className="mt-4 text-2xl font-semibold text-white">
               Your Feng Shui report will appear here
             </h3>
+
             <p className="mt-3 text-sm leading-7 text-stone-400">
-              填写左侧信息并点击生成按钮后，这里会展示中英文初步分析报告。
+              Fill in the information, then choose Free Report or AI Reading.
             </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-                Preliminary Report / 初步报告
-              </p>
-              <h3 className="mt-3 text-2xl font-semibold text-white">
-                Feng Shui Reading
-              </h3>
-              <p className="mt-1 text-sm text-stone-500">
-                Generated for: {formData.name || "Guest"}
-              </p>
-            </div>
 
-            <ReportBlock
-              title="Overall Reading"
-              zhTitle="整体分析"
-              en={report.overview}
-              zh={report.overviewZh}
-            />
+            <p className="mt-2 text-sm leading-7 text-stone-500">
+              填写左侧信息后，可以选择生成免费报告或 AI 解读。提交咨询需求只用于保存联系方式和后续跟进。
+            </p>
 
-            <ReportBlock
-              title="Analysis Scope"
-              zhTitle="分析范围"
-              en={report.scope}
-              zh={report.scopeZh}
-            />
-
-            <ReportBlock
-              title="Entrance"
-              zhTitle="入户门"
-              en={report.entrance}
-              zh={report.entranceZh}
-            />
-
-            <ReportBlock
-              title="Room Layout"
-              zhTitle="房间布局"
-              en={report.room}
-              zh={report.roomZh}
-            />
-
-            <ReportBlock
-              title="Kitchen"
-              zhTitle="厨房"
-              en={report.kitchen}
-              zh={report.kitchenZh}
-            />
-
-            <ReportBlock
-              title="Bathroom"
-              zhTitle="卫生间"
-              en={report.bathroom}
-              zh={report.bathroomZh}
-            />
-
-            <ReportBlock
-              title="Image and Floor Plan"
-              zhTitle="图片与户型图"
-              en={report.uploadAdvice}
-              zh={report.uploadAdviceZh}
-            />
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-              <h4 className="font-semibold text-white">
-                Suggestions / 调整建议
-              </h4>
-
-              <ul className="mt-4 space-y-3 text-sm leading-7 text-stone-300">
-                {report.suggestions.map((item, index) => (
-                  <li key={item}>
-                    <span className="text-amber-200">{index + 1}.</span> {item}
-                    <p className="ml-5 text-stone-500">
-                      {report.suggestionsZh[index]}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <ReportBlock
-              title="Next Step"
-              zhTitle="下一步建议"
-              en={report.nextStep}
-              zh={report.nextStepZh}
-            />
-
-            <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5">
+            <div className="mt-8 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5 text-left">
               <h4 className="font-semibold text-amber-100">
-                Consultation Follow-up / 后续咨询跟进
+                How this page works / 本页使用方式
               </h4>
 
-              <p className="mt-3 text-sm leading-7 text-stone-300">
-                We have received your submitted information. If you selected interest in a deeper consultation, we may follow up through your preferred contact method.
-              </p>
-
-              <p className="mt-3 text-sm leading-7 text-stone-500">
-                我们已经收到你提交的信息。如果你表达了进一步咨询意向，我们可能会根据你选择的联系方式进行后续沟通。
-              </p>
-
-              <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm font-medium text-white">
-                  For deeper paid consultation / 如需深度付费分析：
+              <div className="mt-4 space-y-3 text-sm leading-7 text-stone-400">
+                <p>
+                  1. Generate Free Report：生成一份规则型免费初步报告。
                 </p>
-                <p className="mt-2 text-sm leading-6 text-stone-400">
-                  A complete reading usually requires a floor plan, clear room photos, compass direction, and your main concern.
+                <p>
+                  2. Generate AI Reading：调用 AI 生成更完整的初步解读。
                 </p>
-                <p className="mt-2 text-sm leading-6 text-stone-500">
-                完整分析通常需要户型图、清晰房间照片、指南针朝向以及你最关心的问题。
+                <p>
+                  3. Submit Request：提交联系方式和咨询需求，便于后续人工跟进。
                 </p>
               </div>
             </div>
@@ -845,27 +729,5 @@ export default function FengShuiForm() {
         )}
       </div>
     </section>
-  );
-}
-
-function ReportBlock({
-  title,
-  zhTitle,
-  en,
-  zh,
-}: {
-  title: string;
-  zhTitle: string;
-  en: string;
-  zh: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-      <h4 className="font-semibold text-white">
-        {title} / {zhTitle}
-      </h4>
-      <p className="mt-3 text-sm leading-7 text-stone-300">{en}</p>
-      <p className="mt-3 text-sm leading-7 text-stone-500">{zh}</p>
-    </div>
   );
 }
