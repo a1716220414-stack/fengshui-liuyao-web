@@ -27,10 +27,17 @@ export async function POST(request: Request) {
       maxOutputTokens: 1300,
     });
 
-    return NextResponse.json({
-      ok: true,
-      reading,
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        reading,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      },
+    );
   } catch (error) {
     console.error("Feng Shui AI route error:", error);
 
