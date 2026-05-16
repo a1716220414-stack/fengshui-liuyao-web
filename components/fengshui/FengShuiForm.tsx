@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useState } from "react";
 import FengShuiReportCard from "@/components/reports/FengShuiReportCard";
+import AIReadingCard from "@/components/reports/AIReadingCard";
 import {
   FengShuiFormData,
   FengShuiReport,
@@ -96,6 +97,9 @@ export default function FengShuiForm() {
   const [freeReport, setFreeReport] = useState<FengShuiInsightReport | null>(
     null,
   );
+  const [aiReading, setAiReading] = useState("");
+  const [aiError, setAiError] = useState("");
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [savedLeadId, setSavedLeadId] = useState("");
@@ -173,6 +177,66 @@ export default function FengShuiForm() {
     });
 
     setFreeReport(report);
+  }
+
+  async function handleGenerateAIReading() {
+    setAiError("");
+    setAiReading("");
+    setIsGeneratingAI(true);
+
+    try {
+      const report =
+        freeReport ??
+        generateFengShuiInsightReport({
+          houseType: formData.houseType,
+          facingDirection: formData.facingDirection,
+          analysisScope: formData.analysisScope,
+          targetRoomType: formData.targetRoomType,
+          targetRoomArea: formData.targetRoomArea,
+          roomPurpose: formData.roomPurpose,
+          mainDoorArea: formData.mainDoorArea,
+          bedroomArea: formData.bedroomArea,
+          kitchenArea: formData.kitchenArea,
+          bathroomArea: formData.bathroomArea,
+          mainConcern: formData.mainConcern,
+          notes: formData.notes,
+          uploadedFileCount: selectedFiles.length,
+        });
+
+      if (!freeReport) {
+        setFreeReport(report);
+      }
+
+      const response = await fetch("/api/ai/fengshui", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceType: "fengshui",
+          formData,
+          freeReport: report,
+          uploadedFileCount: selectedFiles.length,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Failed to generate AI reading.");
+      }
+
+      setAiReading(data.reading);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to generate AI reading.";
+
+      setAiError(message);
+    } finally {
+      setIsGeneratingAI(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -603,27 +667,54 @@ export default function FengShuiForm() {
             </div>
           ) : null}
 
-          <button
-            type="button"
-            onClick={handleGenerateFreeReport}
-            className="rounded-full border border-amber-300/40 px-6 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10"
-          >
-            Generate Free Preliminary Report / 生成免费初步报告
-          </button>
+          <div className="grid gap-3 md:grid-cols-3">
+            <button
+              type="button"
+              onClick={handleGenerateFreeReport}
+              className="rounded-full border border-amber-300/40 px-6 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10"
+            >
+              Generate Free Report / 生成免费报告
+            </button>
 
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="w-full rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSaving
-              ? "Saving and Generating... / 正在保存并生成..."
-              : "Generate Preliminary Report / 生成初步报告"}
-          </button>
+            <button
+              type="button"
+              onClick={handleGenerateAIReading}
+              disabled={isGeneratingAI}
+              className="rounded-full border border-emerald-300/40 px-6 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isGeneratingAI
+                ? "Generating AI... / AI 解读中..."
+                : "Generate AI Reading / 生成 AI 解读"}
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="w-full rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSaving
+                ? "Saving and Generating... / 正在保存并生成..."
+                : "Submit Request / 提交咨询需求"}
+            </button>
+          </div>
         </form>
       </div>
 
       {freeReport ? <FengShuiReportCard report={freeReport} /> : null}
+
+      {aiError ? (
+        <div className="mt-6 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {aiError}
+        </div>
+      ) : null}
+
+      {aiReading ? (
+        <AIReadingCard
+          title="Feng Shui AI Preliminary Interpretation"
+          zhTitle="风水 AI 初步解读"
+          reading={aiReading}
+        />
+      ) : null}
 
       <div className="rounded-[1.5rem] border border-white/10 bg-black/30 p-6">
         {!report ? (
