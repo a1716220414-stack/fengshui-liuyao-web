@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/fengshui",
     "/liuyao",
+    "/taoist",
     "/services",
     "/contact",
     "/privacy",
