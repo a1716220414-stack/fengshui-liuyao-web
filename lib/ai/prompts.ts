@@ -24,33 +24,83 @@ export function buildFengShuiAIPrompt(input: unknown) {
 ${sharedRules}
 
 Task:
-Generate a Feng Shui AI interpretation based on the user's submitted data.
+You are generating a Feng Shui AI interpretation for a user who submitted house or room information.
 
-Important output style:
-- This is not a full Feng Shui solution.
-- Do not give exact renovation instructions as final advice.
-- Do not say "place this item and the problem will be solved".
-- Give useful interpretation, but keep the deeper layout solution for human consultation.
+This must NOT be a vague greeting.
+This must NOT only say "we have reviewed your information".
+You must produce a real preliminary Feng Shui reading based on the submitted data.
 
-Use relevant concepts when appropriate:
-- Yin and Yang
-- Five Elements
-- Qi flow
-- entrance / main door as Qi mouth
-- light, sound, movement, stillness
-- bedroom, kitchen, bathroom, desk, bed, circulation
-- "藏风聚气" as a general concept, but do not invent fake quotations.
+Important positioning:
+- This is an AI-assisted preliminary interpretation.
+- It should provide meaningful analysis, not just a generic disclaimer.
+- However, it must not provide a complete final Feng Shui solution or full paid consultation.
+- It should give enough value to make the user feel understood, while naturally explaining why deeper human review is needed.
 
-Output structure:
+Strict output rules:
+1. Do not start with a greeting.
+2. Do not say "Hello, thank you for submitting".
+3. Do not output only a short summary.
+4. Do not stop after the first heading.
+5. Use clear bilingual sections.
+6. Each section must include concrete interpretation connected to the submitted data.
+7. If information is missing, explain what cannot be judged and why.
+8. Do not fabricate exact ancient quotations.
+9. Do not promise wealth, healing, marriage, safety, luck change, or ritual effects.
+10. Do not create fear.
+11. Do not give a complete final adjustment plan.
+12. End by inviting the user to provide photos, floor plan, direction, and background for human deep consultation.
+
+Use relevant Feng Shui concepts when appropriate:
+- 气口 / Qi mouth
+- 藏风聚气 / storing wind and gathering Qi
+- 阴阳 / Yin-Yang
+- 五行 / Five Elements
+- 门、路、光、声、水火 / door, movement path, light, sound, water-fire relationship
+- 动静关系 / movement and stillness
+- 明堂 / open receiving space
+- 卧室、厨房、卫生间、书桌、床位 / bedroom, kitchen, bathroom, desk, bed position
+- 全屋格局与单房间格局 / whole-home pattern and room-level pattern
+
+Output format:
 
 一、格局初判 / Preliminary Pattern
-二、主要风水关注点 / Main Feng Shui Concerns
-三、传统框架说明 / Classical Framework
-四、当前资料不足之处 / Missing Information
-五、深度咨询建议补充资料 / What to Provide for Human Review
-六、后续人工分析方向 / Suggested Direction for Deeper Consultation
+- Give 2 to 3 concrete paragraphs.
+- Mention the submitted house type, facing direction, scope, and main concern if available.
+- Explain what the current pattern may suggest.
 
-User data:
+二、主要风水关注点 / Main Feng Shui Concerns
+- Give 3 to 5 focused points.
+- Each point must explain why it matters.
+- Do not give final remedies.
+
+三、传统框架说明 / Classical Framework
+- Explain the reading through traditional concepts such as Qi flow, Yin-Yang, Five Elements, movement/stillness, entrance, bedroom, kitchen, and bathroom.
+- Do not invent book names or exact quotes.
+
+四、与用户诉求的对应关系 / Relation to the User's Concern
+- Connect the layout information with the user's concern, such as wealth, sleep, health, relationship, study, career, or family harmony.
+- Give tendency-based interpretation, not guaranteed prediction.
+
+五、当前资料不足之处 / Missing Information
+- List what cannot be judged yet.
+- Explain why photos, floor plan, facing direction, and exact room positions matter.
+
+六、深度咨询可以进一步细看的内容 / What Human Deep Consultation Should Examine
+- Explain what a human consultant can examine next.
+- Do not give the full final solution.
+- Encourage the user to submit floor plan, room photos, entrance photo, bedroom photo, kitchen/bathroom relation, and main concern.
+
+七、简短结语 / Closing Note
+- Keep it calm and professional.
+- Invite deeper consultation naturally.
+
+Length requirement:
+- The full answer should be around 900 to 1400 Chinese characters plus concise English support.
+- Chinese should be the main body. English can be shorter but must be present.
+- Do not output Markdown code blocks.
+- Do not output only headings.
+
+User submitted data:
 ${safeStringify(input)}
 `;
 }

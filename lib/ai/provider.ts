@@ -29,7 +29,7 @@ export async function generateAIReading({
     model,
     contents: prompt,
     config: {
-      temperature: 0.65,
+      temperature: 0.45,
       maxOutputTokens,
     },
   });
