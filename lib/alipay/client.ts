@@ -41,15 +41,21 @@ export function createAlipayPagePayUrl({
 }) {
   const alipaySdk = getAlipayClient();
 
-  return alipaySdk.pageExecute("alipay.trade.page.pay", "GET", {
+  const payUrl = alipaySdk.pageExecute("alipay.trade.page.pay", "GET", {
     notifyUrl,
     returnUrl,
     bizContent: {
-      outTradeNo,
-      productCode: "FAST_INSTANT_TRADE_PAY",
-      totalAmount,
-      subject,
-      body,
+      out_trade_no: outTradeNo,
+      product_code: "FAST_INSTANT_TRADE_PAY",
+      total_amount: totalAmount,
+      subject: subject.slice(0, 128),
+      body: body.slice(0, 256),
     },
   });
+
+  if (typeof payUrl !== "string" || !payUrl.includes("alipay.trade.page.pay")) {
+    throw new Error("Failed to generate a valid Alipay payment URL.");
+  }
+
+  return payUrl;
 }
