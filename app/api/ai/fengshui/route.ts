@@ -1,12 +1,31 @@
 import { NextResponse } from "next/server";
 import { buildFengShuiAIPrompt } from "@/lib/ai/prompts";
 import { generateAIReading } from "@/lib/ai/provider";
+import { verifyPaidOrder, markOrderConsumed } from "@/lib/payment/paid-order";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
+    const orderId = String(body.orderId || "");
+
+    const payment = await verifyPaidOrder({
+      orderId,
+      serviceType: "fengshui",
+    });
+
+    if (!payment.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: payment.message,
+          order: payment.order,
+        },
+        { status: payment.status },
+      );
+    }
 
     const rawText = JSON.stringify(body);
 
@@ -25,6 +44,11 @@ export async function POST(request: Request) {
     const reading = await generateAIReading({
       prompt,
       maxOutputTokens: 10000,
+    });
+
+    await markOrderConsumed({
+      orderId,
+      aiResult: reading,
     });
 
     return NextResponse.json(
