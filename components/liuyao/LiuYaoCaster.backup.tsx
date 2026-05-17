@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LiuYaoBasicReadingCard from "@/components/reports/LiuYaoBasicReadingCard";
-import AIReadingCard from "@/components/reports/AIReadingCard";
 import { generateLiuYaoBasicReading } from "@/lib/liuyao-reading";
 import {
   CoinSide,
@@ -13,7 +12,6 @@ import {
   getCoinLabel,
   getLinePositionName,
 } from "@/lib/liuyao";
-
 
 const questionTypes = [
   { value: "career", label: "Career / 事业工作" },
@@ -126,8 +124,7 @@ function getGenderLabel(value: string) {
 
 function getManualLineLabel(sum: number) {
   return (
-    manualLineOptions.find((item) => item.value === sum)?.shortLabel ??
-    "未知"
+    manualLineOptions.find((item) => item.value === sum)?.shortLabel ?? "未知"
   );
 }
 
@@ -207,21 +204,95 @@ function buildManualLine(position: number, sum: number): LiuYaoLine {
   };
 }
 
+function LiuYaoDesktopFloatingPayButton({
+  hasCast,
+  onPay,
+  isPaying,
+  aiMessage,
+}: {
+  hasCast: boolean;
+  onPay: () => void;
+  isPaying: boolean;
+  aiMessage: string;
+}) {
+  if (!hasCast) {
+    return null;
+  }
+
+  return (
+    <aside className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 lg:block">
+      <button
+        type="button"
+        onClick={onPay}
+        disabled={isPaying}
+        className="group flex w-[132px] flex-col items-center rounded-2xl border border-emerald-300/40 bg-black/90 px-3 py-3 text-center shadow-[0_0_36px_rgba(16,185,129,0.20)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-300 text-xs font-black text-black shadow-[0_0_24px_rgba(110,231,183,0.35)]">
+          AI
+        </span>
+        <span className="text-xs font-semibold leading-5 text-emerald-100">
+          {isPaying ? "处理中" : "付费解锁"}
+        </span>
+        <span className="mt-0.5 text-[10px] leading-4 text-zinc-400">
+          六爻 AI 解读
+        </span>
+      </button>
+
+      {aiMessage ? (
+        <div className="mt-2 w-[132px] rounded-xl border border-amber-300/20 bg-black/85 px-3 py-2 text-[10px] leading-4 text-amber-100 shadow-lg backdrop-blur">
+          {aiMessage}
+        </div>
+      ) : null}
+    </aside>
+  );
+}
+
+function LiuYaoMobilePaidBar({
+  hasCast,
+  onPay,
+  isPaying,
+}: {
+  hasCast: boolean;
+  onPay: () => void;
+  isPaying: boolean;
+}) {
+  if (!hasCast) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-emerald-300/25 bg-black/95 px-4 py-3 shadow-[0_-20px_60px_rgba(0,0,0,0.65)] backdrop-blur md:hidden">
+      <div className="mx-auto flex max-w-md items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-emerald-100">六爻 AI 解读</p>
+          <p className="truncate text-xs text-zinc-400">
+            支付后自动生成，可复制保存
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onPay}
+          disabled={isPaying}
+          className="rounded-full bg-emerald-300 px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isPaying ? "处理中..." : "付费解锁"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LiuYaoCaster() {
   const [question, setQuestion] = useState("");
   const [questionType, setQuestionType] = useState("career");
   const [seekerGender, setSeekerGender] = useState("not_specified");
 
-  const [aiReading, setAiReading] = useState("");
-  const [aiError, setAiError] = useState("");
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-
   const [timeMode, setTimeMode] = useState<TimeMode>("auto");
   const [castTimeLocal, setCastTimeLocal] = useState("");
   const [timezone, setTimezone] = useState("");
 
-  const [divinationMode, setDivinationMode] =
-    useState<DivinationMode>("coin");
+  const [divinationMode, setDivinationMode] = useState<DivinationMode>("coin");
   const [castingMethod, setCastingMethod] = useState<CastingMethod>("manual");
 
   const [manualLineSums, setManualLineSums] = useState<number[]>([
@@ -247,6 +318,9 @@ export default function LiuYaoCaster() {
   const [leadError, setLeadError] = useState("");
   const [leadSuccess, setLeadSuccess] = useState("");
   const [isSavingLead, setIsSavingLead] = useState(false);
+
+  const [aiMessage, setAiMessage] = useState("");
+  const [isRequestingAi, setIsRequestingAi] = useState(false);
 
   const shakeIntervalRef = useRef<number | null>(null);
   const shakeStartTimeRef = useRef<number>(0);
@@ -323,8 +397,7 @@ export default function LiuYaoCaster() {
     setPreviewLine(null);
     setShakePower(0);
     setNotice("");
-    setAiReading("");
-    setAiError("");
+    setAiMessage("");
     setLeadError("");
     setLeadSuccess("");
   }
@@ -385,8 +458,7 @@ export default function LiuYaoCaster() {
     setCurrentCoins([]);
     setPreviewLine(null);
     setShakePower(0);
-    setAiReading("");
-    setAiError("");
+    setAiMessage("");
     setLeadError("");
     setLeadSuccess("");
 
@@ -464,8 +536,7 @@ export default function LiuYaoCaster() {
     setCurrentCoins([]);
     setPreviewLine(null);
     setShakePower(0);
-    setAiReading("");
-    setAiError("");
+    setAiMessage("");
     setLeadError("");
     setLeadSuccess("");
     setNotice("Manual hexagram has been applied. / 手动卦象已生成。");
@@ -572,39 +643,40 @@ export default function LiuYaoCaster() {
     }
   }
 
-  async function handlePayAndUnlockAIReading() {
+  async function handlePaidAiReading() {
     if (!result) {
-      setAiError("Please cast a hexagram first. / 请先完成起卦。");
+      setAiMessage("Please cast a hexagram first. / 请先完成起卦。");
       return;
     }
 
-    setAiError("");
-    setAiReading("");
-    setIsGeneratingAI(true);
+    const effectiveCastTime = getEffectiveCastTime();
+
+    const aiRequestBody = {
+      serviceType: "liuyao",
+      question,
+      questionType,
+      seekerGender,
+      castTimeLocal: effectiveCastTime,
+      timezone,
+      primaryHexagram: {
+        number: result.primary.number,
+        name: result.primary.name,
+        nameZh: result.primary.nameZh,
+      },
+      changedHexagram: {
+        number: result.changed.number,
+        name: result.changed.name,
+        nameZh: result.changed.nameZh,
+      },
+      hasChangingLines: result.hasChangingLines,
+      changingPositions: result.changingPositions,
+      lines,
+      freeReading: basicReading,
+    };
 
     try {
-      const aiRequestBody = {
-        serviceType: "liuyao",
-        question,
-        questionType,
-        seekerGender,
-        castTimeLocal,
-        timezone,
-        primaryHexagram: {
-          number: result.primary.number,
-          name: result.primary.name,
-          nameZh: result.primary.nameZh,
-        },
-        changedHexagram: {
-          number: result.changed.number,
-          name: result.changed.name,
-          nameZh: result.changed.nameZh,
-        },
-        hasChangingLines: result.hasChangingLines,
-        changingPositions: result.changingPositions,
-        lines,
-        freeReading: basicReading,
-      };
+      setIsRequestingAi(true);
+      setAiMessage("Creating payment order... / 正在创建支付订单...");
 
       const response = await fetch("/api/alipay/create-order", {
         method: "POST",
@@ -624,40 +696,59 @@ export default function LiuYaoCaster() {
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (!response.ok || !data.ok) {
-        throw new Error(data.message || "Failed to create payment order.");
+      if (!response.ok || !data?.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            "Failed to create payment order. / 创建支付订单失败。",
+        );
       }
 
-      window.localStorage.setItem(
-        `sy-ai-reading-payload:${data.providerOrderId}`,
-        JSON.stringify({
-          serviceType: "liuyao",
-          aiRequestBody,
-        }),
-      );
+      const providerOrderId =
+        data.providerOrderId || data.orderId || data.outTradeNo || "";
+      const payUrl = data.payUrl || data.paymentUrl || data.alipayUrl || "";
 
-      window.localStorage.setItem(
-        "sy-ai-last-provider-order-id",
-        data.providerOrderId,
-      );
+      if (!payUrl) {
+        throw new Error(
+          "Payment URL was not returned by the server. / 服务端未返回支付宝支付链接。",
+        );
+      }
 
-      window.location.href = data.payUrl;
+      if (providerOrderId) {
+        window.localStorage.setItem(
+          `sy-ai-reading-payload:${providerOrderId}`,
+          JSON.stringify({
+            serviceType: "liuyao",
+            aiRequestBody,
+          }),
+        );
+
+        window.localStorage.setItem(
+          "sy-ai-last-provider-order-id",
+          providerOrderId,
+        );
+      }
+
+      setAiMessage("Redirecting to Alipay... / 正在跳转支付宝...");
+      window.location.assign(payUrl);
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to create payment order.";
+          : "Failed to create payment order. / 创建支付订单失败。";
 
-      setAiError(message);
-      setIsGeneratingAI(false);
+      setAiMessage(message);
+      setIsRequestingAi(false);
     }
   }
 
   async function handleSaveLiuYaoLead() {
     if (!result) {
-      setLeadError("Please complete the hexagram casting first. / 请先完成起卦。");
+      setLeadError(
+        "Please complete the hexagram casting first. / 请先完成起卦。",
+      );
       return;
     }
 
@@ -759,588 +850,625 @@ export default function LiuYaoCaster() {
   const canRecord = castingPhase === "poured" && previewLine;
 
   return (
-    <section className="mt-12 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur">
-        <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-          Casting / 起卦
-        </p>
+    <section className="relative mt-12 pb-28 lg:pb-0">
+      <LiuYaoDesktopFloatingPayButton
+        hasCast={Boolean(result)}
+        onPay={handlePaidAiReading}
+        isPaying={isRequestingAi}
+        aiMessage={aiMessage}
+      />
 
-        <h2 className="mt-3 text-2xl font-semibold text-white">
-          Ask a question and cast six lines
-        </h2>
+      <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+          <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
+            Casting / 起卦
+          </p>
 
-        <p className="mt-2 text-sm leading-6 text-zinc-400">
-          支持铜钱摇卦、自动模拟、手动摇卦，也支持直接手动选择六爻卦象。起卦时间可使用当前时间，也可手动调整。
-        </p>
+          <h2 className="mt-3 text-2xl font-semibold text-white">
+            Ask a question and cast six lines
+          </h2>
 
-        <div className="mt-6 space-y-5">
-          <div>
-            <label className="mb-2 block">
-              <span className="block text-sm font-medium text-zinc-100">
-                Question
-              </span>
-              <span className="block text-xs text-zinc-500">
-                所问之事，建议一卦一问
-              </span>
-            </label>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            支持铜钱摇卦、自动模拟、手动摇卦，也支持直接手动选择六爻卦象。起卦时间可使用当前时间，也可手动调整。
+          </p>
 
-            <textarea
-              value={question}
-              disabled={isCastingLocked}
-              onChange={(event) => setQuestion(event.target.value)}
-              placeholder="Example: Should I accept this job opportunity?"
-              rows={4}
-              className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block">
-                <span className="block text-sm font-medium text-zinc-100">
-                  Question Type
-                </span>
-                <span className="block text-xs text-zinc-500">问题类型</span>
-              </label>
-
-              <select
-                value={questionType}
-                disabled={isCastingLocked}
-                onChange={(event) => setQuestionType(event.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {questionTypes.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block">
-                <span className="block text-sm font-medium text-zinc-100">
-                  Gender
-                </span>
-                <span className="block text-xs text-zinc-500">
-                  问事人性别，可选择不透露
-                </span>
-              </label>
-
-              <select
-                value={seekerGender}
-                disabled={isCastingLocked}
-                onChange={(event) => setSeekerGender(event.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {genderOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block">
-                <span className="block text-sm font-medium text-zinc-100">
-                  Time Setting
-                </span>
-                <span className="block text-xs text-zinc-500">
-                  起卦时间设置
-                </span>
-              </label>
-
-              <select
-                value={timeMode}
-                disabled={isCastingLocked}
-                onChange={(event) => handleTimeModeChange(event.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {timeModes.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block">
-                <span className="block text-sm font-medium text-zinc-100">
-                  Casting Time
-                </span>
-                <span className="block text-xs text-zinc-500">
-                  自动当前时间，或切换为手动调整
-                </span>
-              </label>
-
-              <input
-                type="datetime-local"
-                value={castTimeLocal}
-                disabled={isCastingLocked || timeMode === "auto"}
-                onChange={(event) => setCastTimeLocal(event.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
-                {timezone ? <span>Time zone / 时区：{timezone}</span> : null}
+          {result ? (
+            <div className="mt-5 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200">
+                    AI Reading / AI 解读
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-white">
+                    起卦已完成，可直接解锁 AI 初步解读
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-zinc-400">
+                    左侧内容会随页面保持可见；也可点击屏幕左侧小浮层按钮。
+                  </p>
+                </div>
 
                 <button
                   type="button"
-                  disabled={isCastingLocked}
-                  onClick={() => setCastTimeLocal(formatLocalDateTimeInput())}
-                  className="text-amber-200 transition hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={handlePaidAiReading}
+                  disabled={isRequestingAi}
+                  className="shrink-0 rounded-full bg-emerald-300 px-4 py-2 text-xs font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Refresh now / 刷新当前时间
+                  {isRequestingAi ? "处理中" : "付费解锁"}
                 </button>
               </div>
-            </div>
-          </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+              {aiMessage ? (
+                <p className="mt-3 rounded-xl border border-amber-300/20 bg-black/20 px-3 py-2 text-xs leading-5 text-amber-100">
+                  {aiMessage}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="mt-6 space-y-5">
             <div>
               <label className="mb-2 block">
                 <span className="block text-sm font-medium text-zinc-100">
-                  Divination Mode
+                  Question
                 </span>
                 <span className="block text-xs text-zinc-500">
-                  起卦方式
+                  所问之事，建议一卦一问
                 </span>
               </label>
 
-              <select
-                value={divinationMode}
+              <textarea
+                value={question}
                 disabled={isCastingLocked}
-                onChange={(event) =>
-                  handleDivinationModeChange(event.target.value)
-                }
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {divinationModes.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder="Example: Should I accept this job opportunity?"
+                rows={4}
+                className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+              />
             </div>
 
-            {divinationMode === "coin" ? (
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block">
                   <span className="block text-sm font-medium text-zinc-100">
-                    Casting Method
+                    Question Type
                   </span>
-                  <span className="block text-xs text-zinc-500">
-                    铜钱摇卦模式
-                  </span>
+                  <span className="block text-xs text-zinc-500">问题类型</span>
                 </label>
 
                 <select
-                  value={castingMethod}
+                  value={questionType}
                   disabled={isCastingLocked}
-                  onChange={(event) =>
-                    handleCastingMethodChange(event.target.value)
-                  }
+                  onChange={(event) => setQuestionType(event.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {castingMethods.map((item) => (
+                  {questionTypes.map((item) => (
                     <option key={item.value} value={item.value}>
                       {item.label}
                     </option>
                   ))}
                 </select>
               </div>
-            ) : (
-              <div className="rounded-xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
-                手动选卦适合用户已经线下起卦，或希望直接录入已有卦象。
+
+              <div>
+                <label className="mb-2 block">
+                  <span className="block text-sm font-medium text-zinc-100">
+                    Gender
+                  </span>
+                  <span className="block text-xs text-zinc-500">
+                    问事人性别，可选择不透露
+                  </span>
+                </label>
+
+                <select
+                  value={seekerGender}
+                  disabled={isCastingLocked}
+                  onChange={(event) => setSeekerGender(event.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {genderOptions.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
-          </div>
-
-          {divinationMode === "manual_hexagram" ? (
-            <ManualHexagramSelector
-              manualLineSums={manualLineSums}
-              disabled={isCastingLocked}
-              onChangeLine={handleManualLineChange}
-            />
-          ) : null}
-
-          <div className="grid gap-3 md:grid-cols-2">
-            {divinationMode === "coin" ? (
-              <button
-                type="button"
-                onClick={handleStartRitual}
-                disabled={isCastingLocked}
-                className="rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {castingMethod === "auto"
-                  ? "Start Auto Simulation / 开始自动模拟"
-                  : "Start Manual Casting / 开始手动摇卦"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleApplyManualHexagram}
-                disabled={isCastingLocked}
-                className="rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Apply Manual Hexagram / 生成手动卦象
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleReset}
-              className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Reset / 重置
-            </button>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-            <h3 className="font-semibold text-white">
-              Mode Explanation / 模式说明
-            </h3>
-
-            <div className="mt-4 space-y-3 text-sm leading-7 text-zinc-400">
-              <p>
-                Manual Shake: press and hold for each line, then release and
-                record.
-              </p>
-              <p>
-                Auto Simulation: the system automatically simulates the six-line
-                coin casting process.
-              </p>
-              <p>
-                Manual Hexagram: directly select six lines from bottom to top.
-              </p>
             </div>
 
-            <div className="mt-4 space-y-3 text-sm leading-7 text-zinc-500">
-              <p>手动摇卦：每一爻按住摇动，松开倒出，确认记录。</p>
-              <p>自动模拟：系统自动完成六次铜钱摇卦动画。</p>
-              <p>手动选卦：直接从初爻到上爻选择六爻类型。</p>
-            </div>
-          </div>
-        </div>
-      </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block">
+                  <span className="block text-sm font-medium text-zinc-100">
+                    Time Setting
+                  </span>
+                  <span className="block text-xs text-zinc-500">
+                    起卦时间设置
+                  </span>
+                </label>
 
-      <div className="rounded-[1.5rem] border border-white/10 bg-black/30 p-6">
-        <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-          Hexagram / 卦象
-        </p>
+                <select
+                  value={timeMode}
+                  disabled={isCastingLocked}
+                  onChange={(event) => handleTimeModeChange(event.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {timeModes.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        <h2 className="mt-3 text-2xl font-semibold text-white">
-          Casting Result
-        </h2>
+              <div>
+                <label className="mb-2 block">
+                  <span className="block text-sm font-medium text-zinc-100">
+                    Casting Time
+                  </span>
+                  <span className="block text-xs text-zinc-500">
+                    自动当前时间，或切换为手动调整
+                  </span>
+                </label>
 
-        <CastingStage
-          phase={castingPhase}
-          currentStep={currentStep}
-          coins={currentCoins}
-          previewLine={previewLine}
-          completedCount={lines.length}
-          shakePower={shakePower}
-          notice={notice}
-          canShake={canShake}
-          canRecord={Boolean(canRecord)}
-          divinationMode={divinationMode}
-          castingMethod={castingMethod}
-          onShakeStart={handleShakeStart}
-          onShakeEnd={handleShakeEnd}
-          onShakeCancel={handleShakeCancel}
-          onRecordLine={handleRecordLine}
-        />
-
-        <div className="mt-6 rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-6">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-white">
-                Six Lines / 六爻成卦
-              </h3>
-              <p className="mt-1 text-xs text-zinc-500">
-                Lines are displayed from top to bottom, but generated from
-                bottom to top.
-              </p>
-            </div>
-
-            <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-500">
-              {lines.length}/6
-            </span>
-          </div>
-
-          <div className="mx-auto flex max-w-md flex-col-reverse gap-3">
-            {[1, 2, 3, 4, 5, 6].map((position) => {
-              const line = lines.find((item) => item.position === position);
-
-              return (
-                <HexagramLine
-                  key={position}
-                  position={position}
-                  line={line}
-                  isActive={currentStep === position && castingPhase !== "idle"}
+                <input
+                  type="datetime-local"
+                  value={castTimeLocal}
+                  disabled={isCastingLocked || timeMode === "auto"}
+                  onChange={(event) => setCastTimeLocal(event.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
                 />
-              );
-            })}
-          </div>
 
-          <div className="mt-6 space-y-3">
-            {lines.map((line) => (
-              <LineDetail key={line.position} line={line} />
-            ))}
-          </div>
-        </div>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+                  {timezone ? <span>Time zone / 时区：{timezone}</span> : null}
 
-        {result ? (
-          <div className="mt-6 space-y-5">
-            <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5">
-              <h3 className="text-xl font-semibold text-amber-100">
-                本卦：第 {result.primary.number} 卦 ·{" "}
-                {result.primary.nameZh}
-              </h3>
-
-              <p className="mt-2 text-sm text-zinc-300">
-                {result.primary.name} · {result.primary.upper.nameZh}
-                上{result.primary.lower.nameZh}下
-              </p>
-
-              <p className="mt-3 text-sm leading-7 text-zinc-500">
-                上卦：{result.primary.upper.symbol}{" "}
-                {result.primary.upper.image}；下卦：
-                {result.primary.lower.symbol} {result.primary.lower.image}
-              </p>
-
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-zinc-400">
-                <p>
-                  Divination Mode / 起卦方式：
-                  {divinationMode === "coin"
-                    ? castingMethod === "auto"
-                      ? "Coin Casting - Auto Simulation / 铜钱自动模拟"
-                      : "Coin Casting - Manual Shake / 铜钱手动摇卦"
-                    : "Manual Hexagram / 手动选卦"}
-                </p>
-                <p>Gender / 性别：{getGenderLabel(seekerGender)}</p>
-                <p>
-                  Casting Time / 起卦时间：
-                  {castTimeLocal || "Not recorded / 未记录"}
-                </p>
-                {timezone ? <p>Time Zone / 时区：{timezone}</p> : null}
+                  <button
+                    type="button"
+                    disabled={isCastingLocked}
+                    onClick={() => setCastTimeLocal(formatLocalDateTimeInput())}
+                    className="text-amber-200 transition hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Refresh now / 刷新当前时间
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-              {result.hasChangingLines ? (
-                <>
-                  <h3 className="text-xl font-semibold text-white">
-                    变卦：第 {result.changed.number} 卦 ·{" "}
-                    {result.changed.nameZh}
-                  </h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block">
+                  <span className="block text-sm font-medium text-zinc-100">
+                    Divination Mode
+                  </span>
+                  <span className="block text-xs text-zinc-500">
+                    起卦方式
+                  </span>
+                </label>
 
-                  <p className="mt-2 text-sm text-zinc-300">
-                    {result.changed.name} · {result.changed.upper.nameZh}
-                    上{result.changed.lower.nameZh}下
-                  </p>
+                <select
+                  value={divinationMode}
+                  disabled={isCastingLocked}
+                  onChange={(event) =>
+                    handleDivinationModeChange(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {divinationModes.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  <p className="mt-3 text-sm leading-7 text-zinc-500">
-                    动爻：
-                    {result.changingPositions
-                      .map((position) => getLinePositionName(position))
-                      .join("、")}
-                  </p>
-                </>
+              {divinationMode === "coin" ? (
+                <div>
+                  <label className="mb-2 block">
+                    <span className="block text-sm font-medium text-zinc-100">
+                      Casting Method
+                    </span>
+                    <span className="block text-xs text-zinc-500">
+                      铜钱摇卦模式
+                    </span>
+                  </label>
+
+                  <select
+                    value={castingMethod}
+                    disabled={isCastingLocked}
+                    onChange={(event) =>
+                      handleCastingMethodChange(event.target.value)
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {castingMethods.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               ) : (
-                <>
-                  <h3 className="text-xl font-semibold text-white">
-                    No changing lines / 无动爻
-                  </h3>
-                  <p className="mt-3 text-sm leading-7 text-zinc-500">
-                    此卦无动爻，暂以本卦作为主要参考。后续深度解卦可以结合所问之事、起卦时间、用神和世应进一步判断。
-                  </p>
-                </>
+                <div className="rounded-xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
+                  手动选卦适合用户已经线下起卦，或希望直接录入已有卦象。
+                </div>
               )}
             </div>
 
-            {basicReading ? (
-              <LiuYaoBasicReadingCard reading={basicReading} />
-            ) : null}
-
-            <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-5">
-              <p className="text-sm uppercase tracking-[0.28em] text-emerald-200">
-                AI Interpretation / AI 解读
-              </p>
-
-              <h3 className="mt-4 text-xl font-semibold text-white">
-                Pay to unlock a preliminary Liu Yao AI reading
-              </h3>
-
-              <p className="mt-3 text-sm leading-7 text-zinc-400">
-                After Alipay payment is completed, the system will verify the
-                paid order and generate a preliminary AI interpretation of the
-                primary hexagram, changed hexagram, changing lines, and the
-                tendency of the question.
-              </p>
-
-              <p className="mt-3 text-sm leading-7 text-zinc-500">
-                支付宝支付成功后，系统会验证订单状态并自动生成六爻 AI 初步解读。该结果仍属于初步层级，不会替代人工细断。
-              </p>
-
-              <button
-                type="button"
-                onClick={handlePayAndUnlockAIReading}
-                disabled={isGeneratingAI}
-                className="mt-5 rounded-full bg-emerald-300 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isGeneratingAI
-                  ? "Creating Payment Order... / 正在创建支付订单..."
-                  : "Pay and Unlock Liu Yao AI Reading / 支付解锁六爻 AI 解读"}
-              </button>
-            </div>
-
-            {aiError ? (
-              <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                {aiError}
-              </div>
-            ) : null}
-
-            {aiReading ? (
-              <AIReadingCard
-                title="Liu Yao AI Preliminary Interpretation"
-                zhTitle="六爻 AI 初步解读"
-                reading={aiReading}
+            {divinationMode === "manual_hexagram" ? (
+              <ManualHexagramSelector
+                manualLineSums={manualLineSums}
+                disabled={isCastingLocked}
+                onChangeLine={handleManualLineChange}
               />
             ) : null}
 
-            <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5">
-              <h3 className="text-xl font-semibold text-amber-100">
-                Request Deeper Liu Yao Reading / 申请深度六爻解卦
+            <div className="grid gap-3 md:grid-cols-2">
+              {divinationMode === "coin" ? (
+                <button
+                  type="button"
+                  onClick={handleStartRitual}
+                  disabled={isCastingLocked}
+                  className="rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {castingMethod === "auto"
+                    ? "Start Auto Simulation / 开始自动模拟"
+                    : "Start Manual Casting / 开始手动摇卦"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleApplyManualHexagram}
+                  disabled={isCastingLocked}
+                  className="rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Apply Manual Hexagram / 生成手动卦象
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleReset}
+                className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Reset / 重置
+              </button>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+              <h3 className="font-semibold text-white">
+                Mode Explanation / 模式说明
               </h3>
 
-              <p className="mt-3 text-sm leading-7 text-zinc-300">
-                Submit your contact information and background notes. We can
-                follow up with deeper analysis of useful god, self/responding
-                line, changing lines, and practical advice.
-              </p>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-zinc-400">
+                <p>
+                  Manual Shake: press and hold for each line, then release and
+                  record.
+                </p>
+                <p>
+                  Auto Simulation: the system automatically simulates the six-line
+                  coin casting process.
+                </p>
+                <p>
+                  Manual Hexagram: directly select six lines from bottom to top.
+                </p>
+              </div>
 
-              <p className="mt-3 text-sm leading-7 text-zinc-500">
-                如果需要更深入的六爻判断，可以提交联系方式和事情背景。后续可进一步分析用神、世应、动爻、变卦以及具体建议。
-              </p>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-zinc-500">
+                <p>手动摇卦：每一爻按住摇动，松开倒出，确认记录。</p>
+                <p>自动模拟：系统自动完成六次铜钱摇卦动画。</p>
+                <p>手动选卦：直接从初爻到上爻选择六爻类型。</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <input
-                  value={leadName}
-                  onChange={(event) => setLeadName(event.target.value)}
-                  placeholder="Name / 称呼"
-                  className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
-                />
+        <div className="rounded-[1.5rem] border border-white/10 bg-black/30 p-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
+            Hexagram / 卦象
+          </p>
+
+          <h2 className="mt-3 text-2xl font-semibold text-white">
+            Casting Result
+          </h2>
+
+          <CastingStage
+            phase={castingPhase}
+            currentStep={currentStep}
+            coins={currentCoins}
+            previewLine={previewLine}
+            completedCount={lines.length}
+            shakePower={shakePower}
+            notice={notice}
+            canShake={canShake}
+            canRecord={Boolean(canRecord)}
+            divinationMode={divinationMode}
+            castingMethod={castingMethod}
+            onShakeStart={handleShakeStart}
+            onShakeEnd={handleShakeEnd}
+            onShakeCancel={handleShakeCancel}
+            onRecordLine={handleRecordLine}
+          />
+
+          <div className="mt-6 rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-white">
+                  Six Lines / 六爻成卦
+                </h3>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Lines are displayed from top to bottom, but generated from
+                  bottom to top.
+                </p>
+              </div>
+
+              <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-500">
+                {lines.length}/6
+              </span>
+            </div>
+
+            <div className="mx-auto flex max-w-md flex-col-reverse gap-3">
+              {[1, 2, 3, 4, 5, 6].map((position) => {
+                const line = lines.find((item) => item.position === position);
+
+                return (
+                  <HexagramLine
+                    key={position}
+                    position={position}
+                    line={line}
+                    isActive={currentStep === position && castingPhase !== "idle"}
+                  />
+                );
+              })}
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {lines.map((line) => (
+                <LineDetail key={line.position} line={line} />
+              ))}
+            </div>
+          </div>
+
+          {result ? (
+            <div className="mt-6 space-y-5">
+              <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5">
+                <h3 className="text-xl font-semibold text-amber-100">
+                  本卦：第 {result.primary.number} 卦 ·{" "}
+                  {result.primary.nameZh}
+                </h3>
+
+                <p className="mt-2 text-sm text-zinc-300">
+                  {result.primary.name} · {result.primary.upper.nameZh}上
+                  {result.primary.lower.nameZh}下
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-zinc-500">
+                  上卦：{result.primary.upper.symbol}{" "}
+                  {result.primary.upper.image}；下卦：
+                  {result.primary.lower.symbol} {result.primary.lower.image}
+                </p>
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-zinc-400">
+                  <p>
+                    Divination Mode / 起卦方式：
+                    {divinationMode === "coin"
+                      ? castingMethod === "auto"
+                        ? "Coin Casting - Auto Simulation / 铜钱自动模拟"
+                        : "Coin Casting - Manual Shake / 铜钱手动摇卦"
+                      : "Manual Hexagram / 手动选卦"}
+                  </p>
+                  <p>Gender / 性别：{getGenderLabel(seekerGender)}</p>
+                  <p>
+                    Casting Time / 起卦时间：
+                    {castTimeLocal || "Not recorded / 未记录"}
+                  </p>
+                  {timezone ? <p>Time Zone / 时区：{timezone}</p> : null}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                {result.hasChangingLines ? (
+                  <>
+                    <h3 className="text-xl font-semibold text-white">
+                      变卦：第 {result.changed.number} 卦 ·{" "}
+                      {result.changed.nameZh}
+                    </h3>
+
+                    <p className="mt-2 text-sm text-zinc-300">
+                      {result.changed.name} · {result.changed.upper.nameZh}上
+                      {result.changed.lower.nameZh}下
+                    </p>
+
+                    <p className="mt-3 text-sm leading-7 text-zinc-500">
+                      动爻：
+                      {result.changingPositions
+                        .map((position) => getLinePositionName(position))
+                        .join("、")}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-semibold text-white">
+                      No changing lines / 无动爻
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-zinc-500">
+                      此卦无动爻，暂以本卦作为主要参考。后续深度解卦可以结合所问之事、起卦时间、用神和世应进一步判断。
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {basicReading ? (
+                <LiuYaoBasicReadingCard reading={basicReading} />
+              ) : null}
+
+              <div className="rounded-2xl border border-emerald-300/20 bg-emerald-400/5 p-5">
+                <h3 className="text-xl font-semibold text-white">
+                  AI Interpretation / AI 解读
+                </h3>
+
+                <p className="mt-3 text-sm leading-7 text-zinc-400">
+                  The paid AI reading entry is now fixed on the left side of the
+                  desktop page. You can keep reading this free report and unlock
+                  the AI interpretation whenever you are ready.
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-zinc-500">
+                  付费 AI
+                  解读入口已固定在桌面端左侧。你可以继续阅读当前免费报告，
+                  需要时直接点击左侧按钮解锁；手机端可使用底部固定按钮。
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handlePaidAiReading}
+                  disabled={isRequestingAi}
+                  className="mt-5 rounded-full border border-emerald-300/40 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isRequestingAi
+                    ? "Creating payment order... / 正在创建支付订单..."
+                    : "Pay and Unlock AI Reading / 支付解锁 AI 解读"}
+                </button>
+
+                {aiMessage ? (
+                  <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-7 text-amber-100">
+                    {aiMessage}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-5">
+                <h3 className="text-xl font-semibold text-amber-100">
+                  Request Deeper Liu Yao Reading / 申请深度六爻解卦
+                </h3>
+
+                <p className="mt-3 text-sm leading-7 text-zinc-300">
+                  Submit your contact information and background notes. We can
+                  follow up with deeper analysis of useful god, self/responding
+                  line, changing lines, and practical advice.
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-zinc-500">
+                  如果需要更深入的六爻判断，可以提交联系方式和事情背景。后续可进一步分析用神、世应、动爻、变卦以及具体建议。
+                </p>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <input
+                    value={leadName}
+                    onChange={(event) => setLeadName(event.target.value)}
+                    placeholder="Name / 称呼"
+                    className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
+                  />
+
+                  <select
+                    value={leadPreferredContact}
+                    onChange={(event) =>
+                      setLeadPreferredContact(event.target.value)
+                    }
+                    className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-amber-300/60"
+                  >
+                    <option value="email">Email / 邮箱</option>
+                    <option value="wechat">WeChat / 微信</option>
+                    <option value="x">X / Twitter</option>
+                    <option value="instagram">Instagram</option>
+                  </select>
+
+                  <input
+                    value={leadEmail}
+                    onChange={(event) => setLeadEmail(event.target.value)}
+                    placeholder="Email"
+                    className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
+                  />
+
+                  <input
+                    value={leadWechat}
+                    onChange={(event) => setLeadWechat(event.target.value)}
+                    placeholder="WeChat"
+                    className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
+                  />
+
+                  <input
+                    value={leadXAccount}
+                    onChange={(event) => setLeadXAccount(event.target.value)}
+                    placeholder="X / Twitter"
+                    className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
+                  />
+
+                  <input
+                    value={leadInstagram}
+                    onChange={(event) => setLeadInstagram(event.target.value)}
+                    placeholder="Instagram"
+                    className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
+                  />
+                </div>
 
                 <select
-                  value={leadPreferredContact}
-                  onChange={(event) =>
-                    setLeadPreferredContact(event.target.value)
-                  }
-                  className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-amber-300/60"
+                  value={leadPaidInterest}
+                  onChange={(event) => setLeadPaidInterest(event.target.value)}
+                  className="mt-4 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-amber-300/60"
                 >
-                  <option value="email">Email / 邮箱</option>
-                  <option value="wechat">WeChat / 微信</option>
-                  <option value="x">X / Twitter</option>
-                  <option value="instagram">Instagram</option>
+                  <option value="Interested">
+                    Interested in paid deeper reading / 有付费深度解卦意向
+                  </option>
+                  <option value="Maybe later">Maybe later / 以后再考虑</option>
+                  <option value="Free only">
+                    Free result only / 只看免费结果
+                  </option>
                 </select>
 
-                <input
-                  value={leadEmail}
-                  onChange={(event) => setLeadEmail(event.target.value)}
-                  placeholder="Email"
-                  className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
+                <textarea
+                  value={leadNotes}
+                  onChange={(event) => setLeadNotes(event.target.value)}
+                  placeholder="Background notes / 事情背景补充，例如时间、目前状态、你最关心的判断点"
+                  rows={4}
+                  className="mt-4 w-full resize-none rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
                 />
 
-                <input
-                  value={leadWechat}
-                  onChange={(event) => setLeadWechat(event.target.value)}
-                  placeholder="WeChat"
-                  className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
-                />
+                {leadError ? (
+                  <div className="mt-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {leadError}
+                  </div>
+                ) : null}
 
-                <input
-                  value={leadXAccount}
-                  onChange={(event) => setLeadXAccount(event.target.value)}
-                  placeholder="X / Twitter"
-                  className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
-                />
+                {leadSuccess ? (
+                  <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                    {leadSuccess}
+                  </div>
+                ) : null}
 
-                <input
-                  value={leadInstagram}
-                  onChange={(event) => setLeadInstagram(event.target.value)}
-                  placeholder="Instagram"
-                  className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
-                />
+                <button
+                  type="button"
+                  onClick={handleSaveLiuYaoLead}
+                  disabled={isSavingLead}
+                  className="mt-5 inline-flex rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSavingLead
+                    ? "Submitting... / 正在提交..."
+                    : "Submit Reading Request / 提交深度解卦需求"}
+                </button>
               </div>
 
-              <select
-                value={leadPaidInterest}
-                onChange={(event) => setLeadPaidInterest(event.target.value)}
-                className="mt-4 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-amber-300/60"
+              <Link
+                href="/contact"
+                className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                <option value="Interested">
-                  Interested in paid deeper reading / 有付费深度解卦意向
-                </option>
-                <option value="Maybe later">Maybe later / 以后再考虑</option>
-                <option value="Free only">
-                  Free result only / 只看免费结果
-                </option>
-              </select>
-
-              <textarea
-                value={leadNotes}
-                onChange={(event) => setLeadNotes(event.target.value)}
-                placeholder="Background notes / 事情背景补充，例如时间、目前状态、你最关心的判断点"
-                rows={4}
-                className="mt-4 w-full resize-none rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-300/60"
-              />
-
-              {leadError ? (
-                <div className="mt-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  {leadError}
-                </div>
-              ) : null}
-
-              {leadSuccess ? (
-                <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                  {leadSuccess}
-                </div>
-              ) : null}
-
-              <button
-                type="button"
-                onClick={handleSaveLiuYaoLead}
-                disabled={isSavingLead}
-                className="mt-5 inline-flex rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isSavingLead
-                  ? "Submitting... / 正在提交..."
-                  : "Submit Reading Request / 提交深度解卦需求"}
-              </button>
+                Contact Page / 联系页面
+              </Link>
             </div>
-
-            <Link
-              href="/contact"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Contact Page / 联系页面
-            </Link>
-          </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-dashed border-white/10 p-6 text-center">
-            <p className="text-sm leading-7 text-zinc-500">
-              Complete six lines to generate the hexagram.
-              <br />
-              完成六爻后，这里会显示本卦、变卦、动爻和深度解卦申请入口。
-            </p>
-          </div>
-        )}
+          ) : (
+            <div className="mt-6 rounded-2xl border border-dashed border-white/10 p-6 text-center">
+              <p className="text-sm leading-7 text-zinc-500">
+                Complete six lines to generate the hexagram.
+                <br />
+                完成六爻后，这里会显示本卦、变卦、动爻和深度解卦申请入口。
+              </p>
+            </div>
+          )}
+        </div>
       </div>
+
+      <LiuYaoMobilePaidBar
+        hasCast={Boolean(result)}
+        onPay={handlePaidAiReading}
+        isPaying={isRequestingAi}
+      />
     </section>
   );
 }
