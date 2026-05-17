@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LiuYaoBasicReadingCard from "@/components/reports/LiuYaoBasicReadingCard";
-import AIReadingCard from "@/components/reports/AIReadingCard";
 import { generateLiuYaoBasicReading } from "@/lib/liuyao-reading";
 import {
   CoinSide,
@@ -288,10 +287,6 @@ export default function LiuYaoCaster() {
   const [question, setQuestion] = useState("");
   const [questionType, setQuestionType] = useState("career");
   const [seekerGender, setSeekerGender] = useState("not_specified");
-
-  const [aiReading, setAiReading] = useState("");
-  const [aiError, setAiError] = useState("");
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const [timeMode, setTimeMode] = useState<TimeMode>("auto");
   const [castTimeLocal, setCastTimeLocal] = useState("");
@@ -658,38 +653,97 @@ export default function LiuYaoCaster() {
       return;
     }
 
+    const effectiveCastTime = getEffectiveCastTime();
+
+    const aiRequestBody = {
+      serviceType: "liuyao",
+      question,
+      questionType,
+      seekerGender,
+      castTimeLocal: effectiveCastTime,
+      timezone,
+      primaryHexagram: {
+        number: result.primary.number,
+        name: result.primary.name,
+        nameZh: result.primary.nameZh,
+      },
+      changedHexagram: {
+        number: result.changed.number,
+        name: result.changed.name,
+        nameZh: result.changed.nameZh,
+      },
+      hasChangingLines: result.hasChangingLines,
+      changingPositions: result.changingPositions,
+      lines,
+      freeReading: basicReading,
+    };
+
     try {
       setIsRequestingAi(true);
-      setAiMessage("");
+      setAiMessage("Creating payment order... / 正在创建支付订单...");
 
-      const response = await fetch("/api/liuyao-ai", {
+      const response = await fetch("/api/alipay/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          question,
-          questionType,
-          seekerGender,
-          castTimeLocal,
-          timezone,
-          primaryHexagram: result.primary,
-          changedHexagram: result.changed,
-          changingPositions: result.changingPositions,
+          serviceType: "liuyao",
+          customer: {
+            name: leadName,
+            email: leadEmail,
+            wechat: leadWechat,
+            xAccount: leadXAccount,
+            instagram: leadInstagram,
+          },
+          requestPayload: aiRequestBody,
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      setAiMessage(
-        data.message ||
-          "AI interpretation is a paid feature. / AI 解卦为付费功能。",
-      );
-    } catch {
-      setAiMessage(
-        "Unable to connect to the AI reading interface. / 暂时无法连接 AI 解卦接口。",
-      );
-    } finally {
+      if (!response.ok || !data?.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            "Failed to create payment order. / 创建支付订单失败。",
+        );
+      }
+
+      const providerOrderId =
+        data.providerOrderId || data.orderId || data.outTradeNo || "";
+      const payUrl = data.payUrl || data.paymentUrl || data.alipayUrl || "";
+
+      if (!payUrl) {
+        throw new Error(
+          "Payment URL was not returned by the server. / 服务端未返回支付宝支付链接。",
+        );
+      }
+
+      if (providerOrderId) {
+        window.localStorage.setItem(
+          `sy-ai-reading-payload:${providerOrderId}`,
+          JSON.stringify({
+            serviceType: "liuyao",
+            aiRequestBody,
+          }),
+        );
+
+        window.localStorage.setItem(
+          "sy-ai-last-provider-order-id",
+          providerOrderId,
+        );
+      }
+
+      setAiMessage("Redirecting to Alipay... / 正在跳转支付宝...");
+      window.location.assign(payUrl);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to create payment order. / 创建支付订单失败。";
+
+      setAiMessage(message);
       setIsRequestingAi(false);
     }
   }
