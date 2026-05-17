@@ -1,13 +1,13 @@
 export const contactInfo = {
   brandName: "SY Metaphysics",
 
-  email: "your-email@example.com",
+  email: "1574494802@qq.com",
 
-  wechatId: "YOUR_WECHAT_ID",
+  wechatId: "shuiyuxi0227",
 
-  xUrl: "https://x.com/YOUR_ACCOUNT",
+  xUrl: "https://x.com/molly_zhxf?s=11",
 
-  instagramUrl: "https://www.instagram.com/YOUR_ACCOUNT",
+  instagramUrl: "https://www.instagram.com/molly_zhxf?igsh=OWJlaTR6azh4cWFn&utm_source=qr",
 
   preferredContactOrder: ["WeChat", "Instagram", "X", "Email"],
 
