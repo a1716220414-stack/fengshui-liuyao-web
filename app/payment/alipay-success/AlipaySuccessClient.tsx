@@ -32,6 +32,9 @@ type OrderInfo = {
   created_at: string;
 };
 
+const HISTORY_KEY = "sy-ai-order-history";
+const LAST_ORDER_KEY = "sy-ai-last-provider-order-id";
+
 function getStorageKey(providerOrderId: string) {
   return `sy-ai-reading-payload:${providerOrderId}`;
 }
@@ -41,7 +44,30 @@ function getFallbackProviderOrderId() {
     return "";
   }
 
-  return window.localStorage.getItem("sy-ai-last-provider-order-id") || "";
+  return window.localStorage.getItem(LAST_ORDER_KEY) || "";
+}
+
+function saveOrderToLocalHistory(providerOrderId: string) {
+  if (typeof window === "undefined" || !providerOrderId) {
+    return;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    const oldIds = raw ? JSON.parse(raw) : [];
+    const safeOldIds = Array.isArray(oldIds) ? oldIds : [];
+
+    const nextIds = [
+      providerOrderId,
+      ...safeOldIds.filter((item) => item !== providerOrderId),
+    ].slice(0, 30);
+
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(nextIds));
+    window.localStorage.setItem(LAST_ORDER_KEY, providerOrderId);
+  } catch {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify([providerOrderId]));
+    window.localStorage.setItem(LAST_ORDER_KEY, providerOrderId);
+  }
 }
 
 async function fetchJson(url: string, init?: RequestInit) {
@@ -66,6 +92,28 @@ function getReadableStage(stage: PaymentStage) {
   };
 
   return map[stage];
+}
+
+function getOrderCopyText({
+  providerOrderId,
+  order,
+  stage,
+}: {
+  providerOrderId: string;
+  order: OrderInfo | null;
+  stage: PaymentStage;
+}) {
+  return [
+    "SY Metaphysics AI Reading Order",
+    "",
+    `Provider Order ID: ${providerOrderId || "—"}`,
+    `Website Order ID: ${order?.id || "—"}`,
+    `Service Type: ${order?.service_type || "—"}`,
+    `Amount: ${order?.amount_cny ?? "—"}`,
+    `Status: ${order?.status || getReadableStage(stage)}`,
+    `AI Generated: ${order?.consumed || order?.ai_result ? "Yes" : "No"}`,
+    `Created At: ${order?.created_at || "—"}`,
+  ].join("\n");
 }
 
 export default function AlipaySuccessClient() {
@@ -131,6 +179,7 @@ export default function AlipaySuccessClient() {
       }
 
       setProviderOrderId(currentProviderOrderId);
+      saveOrderToLocalHistory(currentProviderOrderId);
 
       setStage("checking");
       setMessage("Checking local order status... / 正在查询本地订单状态...");
@@ -147,7 +196,10 @@ export default function AlipaySuccessClient() {
       if (currentOrder.ai_result) {
         setReading(currentOrder.ai_result);
         setStage("completed");
-        setMessage("AI reading already exists. / AI 解读已存在，已为你恢复显示。");
+        setMessage(
+          "AI reading already exists. The order has been saved to My Orders. / AI 解读已存在，订单已保存到“我的订单”。",
+        );
+        saveOrderToLocalHistory(currentProviderOrderId);
         return;
       }
 
@@ -180,7 +232,10 @@ export default function AlipaySuccessClient() {
       if (currentOrder.ai_result) {
         setReading(currentOrder.ai_result);
         setStage("completed");
-        setMessage("AI reading already exists. / AI 解读已存在，已为你恢复显示。");
+        setMessage(
+          "AI reading already exists. The order has been saved to My Orders. / AI 解读已存在，订单已保存到“我的订单”。",
+        );
+        saveOrderToLocalHistory(currentProviderOrderId);
         return;
       }
 
@@ -232,8 +287,11 @@ export default function AlipaySuccessClient() {
 
       setReading(aiData.reading || "");
       setStage("completed");
-      setMessage("AI reading generated successfully. / AI 解读已生成。");
+      setMessage(
+        "AI reading generated successfully. The order has been saved to My Orders. / AI 解读已生成，订单已保存到“我的订单”。",
+      );
 
+      saveOrderToLocalHistory(currentProviderOrderId);
       window.localStorage.removeItem(getStorageKey(currentProviderOrderId));
     } catch (caughtError) {
       const finalMessage =
@@ -251,10 +309,13 @@ export default function AlipaySuccessClient() {
     runPaymentUnlockFlow();
   }, [runPaymentUnlockFlow]);
 
+  const isBusy =
+    stage === "checking" || stage === "syncing" || stage === "generating";
+
   return (
     <main className="min-h-screen bg-black px-6 py-16 text-white">
       <div className="mx-auto max-w-4xl space-y-8">
-        <section className="rounded-[2rem] border border-amber-300/20 bg-white/[0.04] p-8">
+        <section className="rounded-[2rem] border border-amber-300/20 bg-white/[0.04] p-6 md:p-8">
           <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
             Alipay Payment / 支付宝支付
           </p>
@@ -264,6 +325,23 @@ export default function AlipaySuccessClient() {
           </h1>
 
           <p className="mt-4 text-sm leading-7 text-zinc-400">{message}</p>
+
+          <div className="mt-6 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm leading-7 text-amber-50">
+            <p className="font-semibold">
+              Order saved locally / 订单已尝试保存到本地
+            </p>
+
+            <p className="mt-2 text-zinc-300">
+              This browser will remember your provider order ID so you can later
+              revisit it from “My Orders”. Please still copy the order number or
+              screenshot this page for safety.
+            </p>
+
+            <p className="mt-2 text-zinc-400">
+              当前浏览器会保存你的支付宝商户订单号，后续可在“我的订单”中尝试找回。
+              但如果你清理缓存、更换浏览器或更换设备，本地记录可能丢失，因此仍建议复制订单号或截图保存。
+            </p>
+          </div>
 
           <div className="mt-6 grid gap-4 rounded-2xl border border-white/10 bg-black/30 p-5 text-sm leading-7 text-zinc-300 md:grid-cols-2">
             <div>
@@ -328,6 +406,16 @@ export default function AlipaySuccessClient() {
             </div>
           ) : null}
 
+          {stage === "completed" && reading ? (
+            <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm leading-7 text-emerald-100">
+              AI reading is ready. Please screenshot or copy the result below.
+              You can also open “My Orders” later to view paid readings saved in
+              this browser.
+              <br />
+              AI 解读已生成。请截图或复制下方内容保存。你也可以稍后打开“我的订单”查看当前浏览器记录过的付费解读。
+            </div>
+          ) : null}
+
           {error ? (
             <div className="mt-6 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm leading-7 text-red-200">
               <p>{error}</p>
@@ -345,11 +433,35 @@ export default function AlipaySuccessClient() {
             <button
               type="button"
               onClick={runPaymentUnlockFlow}
-              disabled={stage === "checking" || stage === "syncing" || stage === "generating"}
+              disabled={isBusy}
               className="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-black transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Retry Check / 重新检查
+              {isBusy ? "Checking... / 正在检查..." : "Retry Check / 重新检查"}
             </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                copyText(
+                  getOrderCopyText({
+                    providerOrderId,
+                    order,
+                    stage,
+                  }),
+                  "Order information / 订单信息",
+                )
+              }
+              className="rounded-full border border-amber-300/40 px-5 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-300/10"
+            >
+              Copy Order Info / 复制订单信息
+            </button>
+
+            <Link
+              href="/orders"
+              className="rounded-full border border-emerald-300/40 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10"
+            >
+              My Orders / 我的订单
+            </Link>
 
             <Link
               href={serviceLabel.backHref}
@@ -360,7 +472,7 @@ export default function AlipaySuccessClient() {
 
             <Link
               href="/contact"
-              className="rounded-full border border-emerald-300/40 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10"
+              className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               Contact / 联系
             </Link>

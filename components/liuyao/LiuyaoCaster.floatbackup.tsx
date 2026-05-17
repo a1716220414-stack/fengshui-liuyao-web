@@ -205,13 +205,15 @@ function buildManualLine(position: number, sum: number): LiuYaoLine {
   };
 }
 
-function LiuYaoDesktopFloatingPayButton({
+function LiuYaoDesktopFixedPaidPanel({
   hasCast,
+  question,
   onPay,
   isPaying,
   aiMessage,
 }: {
   hasCast: boolean;
+  question: string;
   onPay: () => void;
   isPaying: boolean;
   aiMessage: string;
@@ -221,29 +223,66 @@ function LiuYaoDesktopFloatingPayButton({
   }
 
   return (
-    <aside className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 lg:block">
-      <button
-        type="button"
-        onClick={onPay}
-        disabled={isPaying}
-        className="group flex w-[132px] flex-col items-center rounded-2xl border border-emerald-300/40 bg-black/90 px-3 py-3 text-center shadow-[0_0_36px_rgba(16,185,129,0.20)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-300 text-xs font-black text-black shadow-[0_0_24px_rgba(110,231,183,0.35)]">
-          AI
-        </span>
-        <span className="text-xs font-semibold leading-5 text-emerald-100">
-          {isPaying ? "处理中" : "付费解锁"}
-        </span>
-        <span className="mt-0.5 text-[10px] leading-4 text-zinc-400">
-          六爻 AI 解读
-        </span>
-      </button>
+    <aside className="fixed left-[max(1rem,calc((100vw-1180px)/2+1rem))] top-24 z-40 hidden w-[100px] max-w-[calc(45vw-2rem)] lg:block">
+      <div className="rounded-[1.75rem] border border-emerald-300/35 bg-black/90 p-5 shadow-[0_0_70px_rgba(16,185,129,0.22)] backdrop-blur-xl">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
+              Next Step / 下一步
+            </p>
+            <h3 className="mt-3 text-xl font-semibold text-white">
+              Unlock Liu Yao AI reading
+            </h3>
+            <p className="mt-1 text-sm font-semibold text-emerald-100">
+              付费解锁六爻 AI 初步解读
+            </p>
+          </div>
 
-      {aiMessage ? (
-        <div className="mt-2 w-[132px] rounded-xl border border-amber-300/20 bg-black/85 px-3 py-2 text-[10px] leading-4 text-amber-100 shadow-lg backdrop-blur">
-          {aiMessage}
+          <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-xs text-emerald-100">
+            Paid
+          </span>
         </div>
-      ) : null}
+
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
+            Current Question / 当前问题
+          </p>
+          <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-200">
+            {question.trim() || "No question entered. / 暂未填写问题"}
+          </p>
+        </div>
+
+        <p className="mt-4 text-sm leading-7 text-zinc-300">
+          You can keep reading the free hexagram report on the right. This panel
+          stays visible so you can unlock the paid AI interpretation at any
+          time.
+        </p>
+        <p className="mt-2 text-sm leading-7 text-zinc-500">
+          右侧可以继续浏览免费卦象解读。此付费入口会固定显示，方便随时解锁 AI
+          解读。
+        </p>
+
+        <button
+          type="button"
+          onClick={onPay}
+          disabled={isPaying}
+          className="mt-5 w-full rounded-full bg-emerald-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isPaying
+            ? "Creating payment order... / 正在创建支付订单..."
+            : "Pay and Unlock AI Reading / 支付解锁 AI 解读"}
+        </button>
+
+        <p className="mt-3 text-xs leading-6 text-zinc-500">
+          支付完成后，系统会自动校验订单并生成解读。建议生成后截图或复制保存。
+        </p>
+
+        {aiMessage ? (
+          <div className="mt-4 rounded-xl border border-amber-300/25 bg-amber-300/10 p-3 text-xs leading-6 text-amber-100">
+            {aiMessage}
+          </div>
+        ) : null}
+      </div>
     </aside>
   );
 }
@@ -801,15 +840,16 @@ export default function LiuYaoCaster() {
 
   return (
     <section className="relative mt-12 pb-28 lg:pb-0">
-      <LiuYaoDesktopFloatingPayButton
+      <LiuYaoDesktopFixedPaidPanel
         hasCast={Boolean(result)}
+        question={question}
         onPay={handlePaidAiReading}
         isPaying={isRequestingAi}
         aiMessage={aiMessage}
       />
 
       <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur">
           <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
             Casting / 起卦
           </p>
@@ -821,39 +861,6 @@ export default function LiuYaoCaster() {
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             支持铜钱摇卦、自动模拟、手动摇卦，也支持直接手动选择六爻卦象。起卦时间可使用当前时间，也可手动调整。
           </p>
-
-          {result ? (
-            <div className="mt-5 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200">
-                    AI Reading / AI 解读
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-white">
-                    起卦已完成，可直接解锁 AI 初步解读
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-zinc-400">
-                    左侧内容会随页面保持可见；也可点击屏幕左侧小浮层按钮。
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handlePaidAiReading}
-                  disabled={isRequestingAi}
-                  className="shrink-0 rounded-full bg-emerald-300 px-4 py-2 text-xs font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isRequestingAi ? "处理中" : "付费解锁"}
-                </button>
-              </div>
-
-              {aiMessage ? (
-                <div className="mt-3 rounded-xl border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs leading-5 text-amber-100">
-                  {aiMessage}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
 
           <div className="mt-6 space-y-5">
             <div>
