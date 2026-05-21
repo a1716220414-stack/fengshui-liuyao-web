@@ -194,7 +194,7 @@ export default function FengShuiForm() {
 
       setFreeReport(reportForAI);
 
-      const response = await fetch("/api/alipay/create-order", {
+      const response = await fetch("/api/paypal/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -689,7 +689,7 @@ export default function FengShuiForm() {
             >
               {isCreatingPayment
                 ? "Creating Payment... / 正在创建支付订单..."
-                : "Pay and Unlock AI Reading / 支付解锁 AI 解读"}
+                : "Pay with PayPal / PayPal 支付解锁 AI 解读"}
             </button>
 
             <button
@@ -736,7 +736,7 @@ export default function FengShuiForm() {
             </p>
 
             <p className="mt-2 text-sm leading-7 text-stone-500">
-              填写左侧信息后，可以选择生成免费报告，或通过支付宝支付后解锁
+              填写左侧信息后，可以选择生成免费报告，或通过 PayPal 支付后解锁
               AI 解读。提交咨询需求只用于保存联系方式和后续跟进。
             </p>
 
@@ -750,7 +750,7 @@ export default function FengShuiForm() {
                   1. Generate Free Report：生成一份规则型免费初步报告。
                 </p>
                 <p>
-                  2. Pay and Unlock AI Reading：创建支付宝订单，支付成功后自动生成更完整的
+                  2. Pay and Unlock AI Reading：创建 PayPal 订单，支付成功后自动生成更完整的
                   AI 初步解读。
                 </p>
                 <p>

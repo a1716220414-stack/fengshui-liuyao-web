@@ -682,7 +682,7 @@ export default function LiuYaoCaster() {
       setIsRequestingAi(true);
       setAiMessage("Creating payment order... / 正在创建支付订单...");
 
-      const response = await fetch("/api/alipay/create-order", {
+      const response = await fetch("/api/paypal/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -716,7 +716,7 @@ export default function LiuYaoCaster() {
 
       if (!payUrl) {
         throw new Error(
-          "Payment URL was not returned by the server. / 服务端未返回支付宝支付链接。",
+          "Payment URL was not returned by the server. / 服务端未返回 PayPal 支付链接。",
         );
       }
 
@@ -735,7 +735,7 @@ export default function LiuYaoCaster() {
         );
       }
 
-      setAiMessage("Redirecting to Alipay... / 正在跳转支付宝...");
+      setAiMessage("Redirecting to PayPal... / 正在跳转 PayPal 支付...");
       window.location.assign(payUrl);
     } catch (error) {
       const message =
@@ -1327,7 +1327,7 @@ export default function LiuYaoCaster() {
                 >
                   {isRequestingAi
                     ? "Creating payment order... / 正在创建支付订单..."
-                    : "Pay and Unlock AI Reading / 支付解锁 AI 解读"}
+                    : "Pay with PayPal / PayPal 支付解锁 AI 解读"}
                 </button>
 
                 {aiMessage ? (

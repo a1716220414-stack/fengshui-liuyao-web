@@ -10,6 +10,11 @@ type UploadedFile = {
   size: number;
 };
 
+type FengShuiLeadWithFiles = {
+  uploaded_files?: UploadedFile[] | null;
+  [key: string]: unknown;
+};
+
 function createSupabaseAdminClient() {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
@@ -28,7 +33,7 @@ function createSupabaseAdminClient() {
 
 async function addSignedUrlsToFengShuiLeads(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
-  leads: any[],
+  leads: FengShuiLeadWithFiles[],
 ) {
   return Promise.all(
     leads.map(async (lead) => {

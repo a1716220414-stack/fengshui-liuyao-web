@@ -25,6 +25,7 @@ type OrderInfo = {
   service_type: ServiceType;
   amount_cny: number;
   status: string;
+  provider?: string | null;
   provider_order_id: string;
   provider_trade_no?: string | null;
   consumed: boolean;
@@ -85,7 +86,7 @@ function getReadableStage(stage: PaymentStage) {
   const map: Record<PaymentStage, string> = {
     idle: "Waiting / 等待中",
     checking: "Checking payment status / 正在查询支付状态",
-    syncing: "Syncing with Alipay / 正在同步支付宝",
+    syncing: "Syncing payment provider / 正在同步支付平台",
     generating: "Generating AI reading / 正在生成 AI 解读",
     completed: "Completed / 已完成",
     failed: "Failed / 失败",
@@ -119,9 +120,12 @@ function getOrderCopyText({
 export default function AlipaySuccessClient() {
   const searchParams = useSearchParams();
 
+  const paypalOrderIdFromUrl = searchParams.get("token") || "";
   const outTradeNoFromUrl = searchParams.get("out_trade_no") || "";
 
-  const [providerOrderId, setProviderOrderId] = useState(outTradeNoFromUrl);
+  const [providerOrderId, setProviderOrderId] = useState(
+    paypalOrderIdFromUrl || outTradeNoFromUrl,
+  );
   const [order, setOrder] = useState<OrderInfo | null>(null);
   const [stage, setStage] = useState<PaymentStage>("idle");
   const [message, setMessage] = useState(
@@ -170,11 +174,11 @@ export default function AlipaySuccessClient() {
       setCopiedText("");
 
       const currentProviderOrderId =
-        outTradeNoFromUrl || getFallbackProviderOrderId();
+        paypalOrderIdFromUrl || outTradeNoFromUrl || getFallbackProviderOrderId();
 
       if (!currentProviderOrderId) {
         throw new Error(
-          "Missing Alipay order number. Please return to the reading page and create a new payment order.",
+          "Missing payment order number. Please return to the reading page and create a new payment order.",
         );
       }
 
@@ -206,14 +210,19 @@ export default function AlipaySuccessClient() {
       if (currentOrder.status !== "paid") {
         setStage("syncing");
         setMessage(
-          "Payment notification has not arrived yet. Syncing with Alipay... / 支付通知尚未到达，正在主动同步支付宝订单...",
+          "Payment notification has not arrived yet. Syncing payment status... / 支付通知尚未到达，正在主动同步支付状态...",
         );
 
-        const syncData = await fetchJson(
-          `/api/alipay/sync-order?providerOrderId=${encodeURIComponent(
-            currentProviderOrderId,
-          )}`,
-        );
+        const syncUrl =
+          currentOrder.provider === "paypal" || Boolean(paypalOrderIdFromUrl)
+            ? `/api/paypal/capture-order?providerOrderId=${encodeURIComponent(
+                currentProviderOrderId,
+              )}`
+            : `/api/alipay/sync-order?providerOrderId=${encodeURIComponent(
+              currentProviderOrderId,
+              )}`;
+
+        const syncData = await fetchJson(syncUrl);
 
         if (syncData.order) {
           currentOrder = syncData.order as OrderInfo;
@@ -303,7 +312,7 @@ export default function AlipaySuccessClient() {
       setStage("failed");
       setMessage("Failed to unlock AI reading. / AI 解读解锁失败。");
     }
-  }, [outTradeNoFromUrl]);
+  }, [outTradeNoFromUrl, paypalOrderIdFromUrl]);
 
   useEffect(() => {
     runPaymentUnlockFlow();
@@ -317,7 +326,7 @@ export default function AlipaySuccessClient() {
       <div className="mx-auto max-w-4xl space-y-8">
         <section className="rounded-[2rem] border border-amber-300/20 bg-white/[0.04] p-6 md:p-8">
           <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-            Alipay Payment / 支付宝支付
+            Payment Result / 支付结果
           </p>
 
           <h1 className="mt-4 text-3xl font-semibold">
@@ -338,7 +347,7 @@ export default function AlipaySuccessClient() {
             </p>
 
             <p className="mt-2 text-zinc-400">
-              当前浏览器会保存你的支付宝商户订单号，后续可在“我的订单”中尝试找回。
+              当前浏览器会保存你的支付订单号，后续可在“我的订单”中尝试找回。
               但如果你清理缓存、更换浏览器或更换设备，本地记录可能丢失，因此仍建议复制订单号或截图保存。
             </p>
           </div>
@@ -424,7 +433,7 @@ export default function AlipaySuccessClient() {
                 above and contact us.
               </p>
               <p>
-                如果你已经完成支付，请保存上方支付宝商户订单号并联系我们。
+                如果你已经完成支付，请保存上方支付订单号并联系我们。
               </p>
             </div>
           ) : null}

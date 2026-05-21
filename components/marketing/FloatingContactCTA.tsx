@@ -9,6 +9,10 @@ export default function FloatingContactCTA() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState("");
+  const shouldLiftContact =
+    pathname?.startsWith("/liuyao") ||
+    pathname?.startsWith("/fengshui") ||
+    pathname?.startsWith("/payment");
 
   if (pathname?.startsWith("/admin")) {
     return null;
@@ -25,7 +29,14 @@ export default function FloatingContactCTA() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div
+      className={[
+        "fixed right-5 z-50 flex flex-col items-end gap-3",
+        shouldLiftContact
+          ? "bottom-24 md:bottom-5"
+          : "bottom-5",
+      ].join(" ")}
+    >
       {isOpen ? (
         <div className="w-[min(92vw,360px)] rounded-[1.5rem] border border-amber-200/25 bg-[#11100d]/95 p-5 text-stone-100 shadow-2xl shadow-black/40 backdrop-blur">
           <div className="flex items-start justify-between gap-4">

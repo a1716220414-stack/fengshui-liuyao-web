@@ -34,3 +34,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## PayPal payments
+
+The AI reading payment buttons use PayPal Checkout by default. Add these
+environment variables in Vercel:
+
+```bash
+PAYPAL_CLIENT_ID=...
+PAYPAL_CLIENT_SECRET=...
+PAYPAL_ENV=sandbox
+AI_READING_PRICE_USD=2.99
+PAYPAL_CURRENCY=USD
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
+Use `PAYPAL_ENV=live` after the PayPal business account is approved and the
+live app credentials are ready.
