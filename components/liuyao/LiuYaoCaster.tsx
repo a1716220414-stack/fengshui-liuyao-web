@@ -78,6 +78,7 @@ type CastingPhase =
 type DivinationMode = "coin" | "manual_hexagram";
 type CastingMethod = "manual" | "auto";
 type TimeMode = "auto" | "manual";
+type PaymentProvider = "paypal" | "alipay";
 
 type CoinVisual = {
   id: number;
@@ -211,7 +212,7 @@ function LiuYaoDesktopFloatingPayButton({
   aiMessage,
 }: {
   hasCast: boolean;
-  onPay: () => void;
+  onPay: (provider: PaymentProvider) => void;
   isPaying: boolean;
   aiMessage: string;
 }) {
@@ -221,12 +222,7 @@ function LiuYaoDesktopFloatingPayButton({
 
   return (
     <aside className="fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 lg:block">
-      <button
-        type="button"
-        onClick={onPay}
-        disabled={isPaying}
-        className="group flex w-[132px] flex-col items-center rounded-2xl border border-emerald-300/40 bg-black/90 px-3 py-3 text-center shadow-[0_0_36px_rgba(16,185,129,0.20)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-300/15 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <div className="flex w-[148px] flex-col items-center rounded-2xl border border-emerald-300/40 bg-black/90 px-3 py-3 text-center shadow-[0_0_36px_rgba(16,185,129,0.20)] backdrop-blur-xl">
         <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-300 text-xs font-black text-black shadow-[0_0_24px_rgba(110,231,183,0.35)]">
           AI
         </span>
@@ -236,7 +232,26 @@ function LiuYaoDesktopFloatingPayButton({
         <span className="mt-0.5 text-[10px] leading-4 text-zinc-400">
           六爻 AI 解读
         </span>
-      </button>
+
+        <div className="mt-3 grid w-full gap-2">
+          <button
+            type="button"
+            onClick={() => onPay("paypal")}
+            disabled={isPaying}
+            className="rounded-full bg-emerald-300 px-3 py-2 text-[11px] font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            PayPal
+          </button>
+          <button
+            type="button"
+            onClick={() => onPay("alipay")}
+            disabled={isPaying}
+            className="rounded-full border border-sky-300/40 px-3 py-2 text-[11px] font-semibold text-sky-100 transition hover:bg-sky-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            支付宝
+          </button>
+        </div>
+      </div>
 
       {aiMessage ? (
         <div className="mt-2 w-[132px] rounded-xl border border-amber-300/20 bg-black/85 px-3 py-2 text-[10px] leading-4 text-amber-100 shadow-lg backdrop-blur">
@@ -253,7 +268,7 @@ function LiuYaoMobilePaidBar({
   isPaying,
 }: {
   hasCast: boolean;
-  onPay: () => void;
+  onPay: (provider: PaymentProvider) => void;
   isPaying: boolean;
 }) {
   if (!hasCast) {
@@ -270,14 +285,24 @@ function LiuYaoMobilePaidBar({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onPay}
-          disabled={isPaying}
-          className="rounded-full bg-emerald-300 px-5 py-2.5 text-xs font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isPaying ? "处理中..." : "付费解锁"}
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            type="button"
+            onClick={() => onPay("paypal")}
+            disabled={isPaying}
+            className="rounded-full bg-emerald-300 px-3 py-2.5 text-xs font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            PayPal
+          </button>
+          <button
+            type="button"
+            onClick={() => onPay("alipay")}
+            disabled={isPaying}
+            className="rounded-full border border-sky-300/40 px-3 py-2.5 text-xs font-semibold text-sky-100 transition hover:bg-sky-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            支付宝
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -647,7 +672,7 @@ export default function LiuYaoCaster() {
     }
   }
 
-  async function handlePaidAiReading() {
+  async function handlePaidAiReading(provider: PaymentProvider) {
     if (!result) {
       setAiMessage("Please cast a hexagram first. / 请先完成起卦。");
       return;
@@ -682,23 +707,28 @@ export default function LiuYaoCaster() {
       setIsRequestingAi(true);
       setAiMessage("Creating payment order... / 正在创建支付订单...");
 
-      const response = await fetch("/api/paypal/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          serviceType: "liuyao",
-          customer: {
-            name: leadName,
-            email: leadEmail,
-            wechat: leadWechat,
-            xAccount: leadXAccount,
-            instagram: leadInstagram,
+      const response = await fetch(
+        provider === "paypal"
+          ? "/api/paypal/create-order"
+          : "/api/alipay/create-order",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          requestPayload: aiRequestBody,
-        }),
-      });
+          body: JSON.stringify({
+            serviceType: "liuyao",
+            customer: {
+              name: leadName,
+              email: leadEmail,
+              wechat: leadWechat,
+              xAccount: leadXAccount,
+              instagram: leadInstagram,
+            },
+            requestPayload: aiRequestBody,
+          }),
+        },
+      );
 
       const data = await response.json().catch(() => null);
 
@@ -716,7 +746,7 @@ export default function LiuYaoCaster() {
 
       if (!payUrl) {
         throw new Error(
-          "Payment URL was not returned by the server. / 服务端未返回 PayPal 支付链接。",
+          "Payment URL was not returned by the server. / 服务端未返回支付链接。",
         );
       }
 
@@ -735,7 +765,11 @@ export default function LiuYaoCaster() {
         );
       }
 
-      setAiMessage("Redirecting to PayPal... / 正在跳转 PayPal 支付...");
+      setAiMessage(
+        provider === "paypal"
+          ? "Redirecting to PayPal... / 正在跳转 PayPal 支付..."
+          : "Redirecting to Alipay... / 正在跳转支付宝支付...",
+      );
       window.location.assign(payUrl);
     } catch (error) {
       const message =
@@ -891,14 +925,24 @@ export default function LiuYaoCaster() {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handlePaidAiReading}
-                  disabled={isRequestingAi}
-                  className="shrink-0 rounded-full bg-emerald-300 px-4 py-2 text-xs font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isRequestingAi ? "处理中" : "付费解锁"}
-                </button>
+                <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => handlePaidAiReading("paypal")}
+                    disabled={isRequestingAi}
+                    className="rounded-full bg-emerald-300 px-4 py-2 text-xs font-semibold text-black transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    PayPal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePaidAiReading("alipay")}
+                    disabled={isRequestingAi}
+                    className="rounded-full border border-sky-300/40 px-4 py-2 text-xs font-semibold text-sky-100 transition hover:bg-sky-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    支付宝
+                  </button>
+                </div>
               </div>
 
               {aiMessage ? (
@@ -1319,16 +1363,29 @@ export default function LiuYaoCaster() {
                   需要时直接点击左侧按钮解锁；手机端可使用底部固定按钮。
                 </p>
 
-                <button
-                  type="button"
-                  onClick={handlePaidAiReading}
-                  disabled={isRequestingAi}
-                  className="mt-5 rounded-full border border-emerald-300/40 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isRequestingAi
-                    ? "Creating payment order... / 正在创建支付订单..."
-                    : "Pay with PayPal / PayPal 支付解锁 AI 解读"}
-                </button>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePaidAiReading("paypal")}
+                    disabled={isRequestingAi}
+                    className="rounded-full border border-emerald-300/40 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isRequestingAi
+                      ? "Creating order... / 正在创建订单..."
+                      : "Pay with PayPal / PayPal 支付解锁"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePaidAiReading("alipay")}
+                    disabled={isRequestingAi}
+                    className="rounded-full border border-sky-300/40 px-5 py-3 text-sm font-semibold text-sky-100 transition hover:bg-sky-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isRequestingAi
+                      ? "Creating order... / 正在创建订单..."
+                      : "Pay with Alipay / 支付宝支付解锁"}
+                  </button>
+                </div>
 
                 {aiMessage ? (
                   <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-7 text-amber-100">

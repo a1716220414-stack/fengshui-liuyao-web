@@ -7,6 +7,8 @@ import type { FengShuiFormData } from "@/lib/fengshuiReport";
 import { generateFengShuiReport as generateFengShuiInsightReport } from "@/lib/fengshui-insights";
 import type { FengShuiReport as FengShuiInsightReport } from "@/lib/fengshui-insights";
 
+type PaymentProvider = "paypal" | "alipay";
+
 const initialFormData: FengShuiFormData = {
   name: "",
   email: "",
@@ -95,7 +97,9 @@ export default function FengShuiForm() {
     useState<FengShuiInsightReport | null>(null);
   const [aiReading, setAiReading] = useState("");
   const [aiError, setAiError] = useState("");
-  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+  const [creatingPaymentProvider, setCreatingPaymentProvider] = useState<
+    PaymentProvider | ""
+  >("");
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -182,40 +186,45 @@ export default function FengShuiForm() {
     setError("");
   }
 
-  async function handlePayAndUnlockAIReading() {
+  async function handlePayAndUnlockAIReading(provider: PaymentProvider) {
     setAiError("");
     setAiReading("");
     setError("");
     setSaveMessage("");
-    setIsCreatingPayment(true);
+    setCreatingPaymentProvider(provider);
 
     try {
       const reportForAI = freeReport ?? buildCurrentFreeReport();
 
       setFreeReport(reportForAI);
 
-      const response = await fetch("/api/paypal/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          serviceType: "fengshui",
-          customer: {
-            name: formData.name,
-            email: formData.email,
-            wechat: formData.wechat,
-            xAccount: formData.xAccount,
-            instagram: formData.instagram,
+      const response = await fetch(
+        provider === "paypal"
+          ? "/api/paypal/create-order"
+          : "/api/alipay/create-order",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          requestPayload: {
+          body: JSON.stringify({
             serviceType: "fengshui",
-            formData,
-            freeReport: reportForAI,
-            uploadedFileCount: selectedFiles.length,
-          },
-        }),
-      });
+            customer: {
+              name: formData.name,
+              email: formData.email,
+              wechat: formData.wechat,
+              xAccount: formData.xAccount,
+              instagram: formData.instagram,
+            },
+            requestPayload: {
+              serviceType: "fengshui",
+              formData,
+              freeReport: reportForAI,
+              uploadedFileCount: selectedFiles.length,
+            },
+          }),
+        },
+      );
 
       const data = await response.json();
 
@@ -250,7 +259,7 @@ export default function FengShuiForm() {
 
       setAiError(message);
     } finally {
-      setIsCreatingPayment(false);
+      setCreatingPaymentProvider("");
     }
   }
 
@@ -672,7 +681,7 @@ export default function FengShuiForm() {
             </div>
           ) : null}
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-4">
             <button
               type="button"
               onClick={handleGenerateFreeReport}
@@ -683,13 +692,24 @@ export default function FengShuiForm() {
 
             <button
               type="button"
-              onClick={handlePayAndUnlockAIReading}
-              disabled={isCreatingPayment}
+              onClick={() => handlePayAndUnlockAIReading("paypal")}
+              disabled={Boolean(creatingPaymentProvider)}
               className="rounded-full border border-emerald-300/40 px-6 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isCreatingPayment
-                ? "Creating Payment... / 正在创建支付订单..."
+              {creatingPaymentProvider === "paypal"
+                ? "Creating PayPal order... / 正在创建 PayPal 订单..."
                 : "Pay with PayPal / PayPal 支付解锁 AI 解读"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handlePayAndUnlockAIReading("alipay")}
+              disabled={Boolean(creatingPaymentProvider)}
+              className="rounded-full border border-sky-300/40 px-6 py-3 text-sm font-semibold text-sky-100 transition hover:bg-sky-300/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {creatingPaymentProvider === "alipay"
+                ? "Creating Alipay order... / 正在创建支付宝订单..."
+                : "Pay with Alipay / 支付宝支付解锁"}
             </button>
 
             <button
