@@ -22,6 +22,11 @@ const navItems = [
     href: "/services",
   },
   {
+    label: "Learn",
+    zhLabel: "指南",
+    href: "/learn",
+  },
+  {
     label: "Contact",
     zhLabel: "联系",
     href: "/contact",

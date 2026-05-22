@@ -1,5 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { contactInfo } from "@/data/contact";
+import { absoluteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Contact for Feng Shui & Liu Yao Consultation",
+  description:
+    "Contact SY Metaphysics for Feng Shui floor plan review, Liu Yao reading, Taoist ritual inquiry, and bilingual consultation.",
+  alternates: {
+    canonical: absoluteUrl("/contact"),
+  },
+};
 
 const contactMethods = [
   {

@@ -1,8 +1,38 @@
+import type { Metadata } from "next";
 import FengShuiForm from "@/components/fengshui/FengShuiForm";
+import { absoluteUrl, jsonLdScript, serviceJsonLd } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Online Feng Shui Consultation & Floor Plan Review",
+  description:
+    "Submit your apartment, house, room, floor plan, compass direction, or photos for a bilingual Feng Shui preliminary reading and deeper consultation.",
+  alternates: {
+    canonical: absoluteUrl("/fengshui"),
+  },
+  openGraph: {
+    title: "Online Feng Shui Consultation & Floor Plan Review",
+    description:
+      "Bilingual Feng Shui analysis for homes, rooms, floor plans, and overseas users.",
+    url: absoluteUrl("/fengshui"),
+    type: "website",
+  },
+};
 
 export default function FengShuiPage() {
   return (
     <main className="min-h-screen bg-stone-950 px-6 py-16 text-stone-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(
+          serviceJsonLd({
+            name: "Online Feng Shui Consultation and Floor Plan Review",
+            description:
+              "Bilingual Feng Shui analysis for homes, rooms, apartment floor plans, photos, and overseas consultation requests.",
+            url: "/fengshui",
+            serviceType: "Feng Shui consultation",
+          }),
+        )}
+      />
       <section className="mx-auto max-w-6xl">
         <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
           Feng Shui / 风水

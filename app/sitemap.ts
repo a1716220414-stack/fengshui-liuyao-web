@@ -1,7 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://fengshui-liuyao-web.vercel.app";
+import { siteUrl } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
@@ -10,6 +8,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/liuyao",
     "/taoist",
     "/services",
+    "/learn",
+    "/learn/feng-shui-floor-plan-review",
+    "/learn/liu-yao-online-reading",
     "/contact",
     "/privacy",
   ];
@@ -18,6 +19,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${siteUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: "weekly",
-    priority: route === "" ? 1 : 0.8,
+    priority: route === "" ? 1 : route.startsWith("/learn/") ? 0.7 : 0.8,
   }));
 }

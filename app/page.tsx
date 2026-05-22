@@ -1,4 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { absoluteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Online Feng Shui, Liu Yao & Taoist Consultation",
+  description:
+    "Start with free bilingual Feng Shui and Liu Yao tools, then request deeper consultation for home layout, hexagram reading, and Taoist ritual inquiries.",
+  alternates: {
+    canonical: absoluteUrl("/"),
+  },
+};
 
 const gateways = [
   {

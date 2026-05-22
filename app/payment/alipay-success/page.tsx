@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import AlipaySuccessClient from "./AlipaySuccessClient";
+
+export const metadata: Metadata = {
+  title: "Payment Result",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AlipaySuccessPage() {
   return (

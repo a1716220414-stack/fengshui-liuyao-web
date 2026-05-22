@@ -17,6 +17,9 @@ export default function Footer() {
           <Link href="/services" className="hover:text-amber-200">
             Services / 服务
           </Link>
+          <Link href="/learn" className="hover:text-amber-200">
+            Learn / 指南
+          </Link>
           <Link href="/contact" className="hover:text-amber-200">
             Contact / 联系
           </Link>

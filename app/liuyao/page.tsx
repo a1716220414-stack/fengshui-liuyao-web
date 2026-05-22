@@ -1,8 +1,38 @@
+import type { Metadata } from "next";
 import LiuYaoCaster from "@/components/liuyao/LiuYaoCaster";
+import { absoluteUrl, jsonLdScript, serviceJsonLd } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Online Liu Yao Reading & Six Lines Divination",
+  description:
+    "Ask one question, cast six lines online, receive a basic hexagram result, and request deeper bilingual Liu Yao interpretation.",
+  alternates: {
+    canonical: absoluteUrl("/liuyao"),
+  },
+  openGraph: {
+    title: "Online Liu Yao Reading & Six Lines Divination",
+    description:
+      "Online Liu Yao coin casting, hexagram result, changing lines, and deeper bilingual interpretation.",
+    url: absoluteUrl("/liuyao"),
+    type: "website",
+  },
+};
 
 export default function LiuYaoPage() {
   return (
     <main className="min-h-screen bg-zinc-950 px-6 py-16 text-zinc-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(
+          serviceJsonLd({
+            name: "Online Liu Yao Reading and Six Lines Divination",
+            description:
+              "Online Liu Yao coin casting, primary hexagram, changed hexagram, changing lines, and deeper bilingual interpretation.",
+            url: "/liuyao",
+            serviceType: "Liu Yao divination consultation",
+          }),
+        )}
+      />
       <section className="mx-auto max-w-6xl">
         <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
           Liu Yao / 六爻

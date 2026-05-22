@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { absoluteUrl, jsonLdScript, serviceJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Zhengyi Taoist Ritual & Blessing Services",
   description:
     "Taoist ritual, blessing, home peace, thanksgiving, memorial, consecration, and date selection consultation for overseas users.",
+  alternates: {
+    canonical: absoluteUrl("/taoist"),
+  },
 };
 
 const ritualCategories = [
@@ -177,6 +181,18 @@ const boundaries = [
 export default function TaoistServicesPage() {
   return (
     <main className="min-h-screen bg-[#080706] text-stone-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(
+          serviceJsonLd({
+            name: "Zhengyi Taoist Ritual and Blessing Consultation",
+            description:
+              "Taoist ritual, blessing, home peace, thanksgiving, memorial, consecration, and date selection consultation for overseas users.",
+            url: "/taoist",
+            serviceType: "Taoist ritual consultation",
+          }),
+        )}
+      />
       <section className="relative overflow-hidden px-6 py-20 md:py-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(217,163,64,0.20),transparent_34%),radial-gradient(circle_at_80%_20%,rgba(20,83,45,0.20),transparent_34%),linear-gradient(180deg,#080706_0%,#11100d_55%,#080706_100%)]" />
         <div className="absolute left-0 top-24 h-px w-full bg-gradient-to-r from-transparent via-amber-200/20 to-transparent" />

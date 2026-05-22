@@ -1,3 +1,15 @@
+import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Privacy & Service Disclaimer",
+  description:
+    "Privacy policy and service disclaimer for SY Metaphysics Feng Shui, Liu Yao, and Taoist consultation requests.",
+  alternates: {
+    canonical: absoluteUrl("/privacy"),
+  },
+};
+
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-stone-950 px-6 py-16 text-stone-100">

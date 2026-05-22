@@ -4,13 +4,17 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FloatingContactCTA from "@/components/marketing/FloatingContactCTA";
 import ServiceContactSection from "@/components/marketing/ServiceContactSection";
+import {
+  jsonLdScript,
+  organizationJsonLd,
+  siteUrl,
+  websiteJsonLd,
+} from "@/lib/seo";
 import "./globals.css";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://fengshui-liuyao-web.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  applicationName: "SY Metaphysics",
   title: {
     default: "SY Metaphysics | Feng Shui & Liu Yao Consultation",
     template: "%s | SY Metaphysics",
@@ -38,9 +42,6 @@ export const metadata: Metadata = {
   ],
   creator: "SY Metaphysics",
   publisher: "SY Metaphysics",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "SY Metaphysics | Feng Shui & Liu Yao Consultation",
     description:
@@ -70,6 +71,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLdScript(organizationJsonLd())}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={jsonLdScript(websiteJsonLd())}
+        />
         <Navbar />
         {children}
         <ServiceContactSection />

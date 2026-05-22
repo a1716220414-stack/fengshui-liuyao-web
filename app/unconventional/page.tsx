@@ -1,3 +1,15 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Unconventional Metaphysics Reading",
+  description:
+    "Experimental symbolic reading, dream analysis, timing suggestions, and flexible metaphysical consultation.",
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
+
 export default function UnconventionalPage() {
   return (
     <main className="min-h-screen bg-neutral-950 px-6 py-16 text-neutral-100">
