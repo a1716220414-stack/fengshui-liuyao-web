@@ -42,6 +42,9 @@ export const metadata: Metadata = {
   ],
   creator: "SY Metaphysics",
   publisher: "SY Metaphysics",
+  verification: {
+    google: "QgaGw13PMpGSMa_lohbmx3YnX_9P0Qkhkg0nvcV7Uq4",
+  },
   openGraph: {
     title: "SY Metaphysics | Feng Shui & Liu Yao Consultation",
     description:
