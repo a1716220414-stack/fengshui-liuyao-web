@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import GlobalAccessMap from "@/components/marketing/GlobalAccessMap";
 import { absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -261,6 +262,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <GlobalAccessMap />
 
       <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">
